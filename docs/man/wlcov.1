@@ -1,0 +1,147 @@
+'t" t
+.TH wlcf 1 "April 2026" UNIX "LSST/S3 PROJECT"
+.na
+.nh   
+
+.SH NAME
+wlcf - (2,3)-Point Correlation Function modeling computation code
+.SH SYNOPSIS
+\fBwlcf\fR [ \fIparameter_file_name\fR ] [ \fIoptions\fR ]
+.sp
+
+.SH DESCRIPTION
+\fBwlcf\fR - computes the 2 or/and 3 point correlation functions using tree/balls methods, complexity O(N Log N).
+
+.SH OPTIONS
+All the options have the structure
+.sp
+$ \fIoption_name\fR=<option_value>
+.sp
+except option \fB-help\fR. No space between \fIoption_name\fR, '=' and <option_value>
+.sp
+
+Options and their possible values are:
+
+.IP "\fB-help\fR" 12
+By writting
+
+.sp
+$ wlcf --help
+.sp
+
+you will get the list of all parameters and their default values. An option may have an alias which is a short name of the option. If an option has an alias in the list above it comes after its description surrounded by brackets tagged with 'a:'. For example,
+
+.sp
+option_name=<option_value>	... Description ... [a: opt]
+.sp
+here 'opt' is the short name of the option. In the description of the options below, when an option has an alias it will be noted in the same way but before its description.
+
+.IP "\fBparamfile\fR" 12
+is the name file with the values of the input parameters. Overwrite parameters
+values below. You may input this filename by only writing:
+.sp
+$ wlcf paramfile=parameters_input_file_name
+.sp
+Parameter input file may be created by hand with the editor of your choice. Comment lines start with an "#" or "%". Follow each name option with a blank-space, "=", blank-space and the option value (note the difference when using command line version instead of parameter file version). The order of the option lines does not matter.  Also you may create an example input file by executing
+.sp
+$ wlcf
+.sp
+This will run the \fBwlcf\fR code with default values and when it finish you will have in your running output directory (by default is 'Output', see below in 'rootDir' line) the file "parameters_null-wlcf-usedvalues". Now you may edit this file to adapt to your own run parameters. This file can be overwritten so it may be helpful to change this file name to whatever apropriate, and move it elsewhere.
+
+.sp
+Note that parameter alias are not allowed in a parameter file. Also behaviour of Mac and Linux plataforms are different when they reach the end of line in a text file. Then would be necessary to add a blank line at the end of the parameter file.
+
+.IP "\fBz\fR" 12
+is redshift to use.
+
+.IP "\fBh\fR" 12
+Hubble parameter.
+
+.IP "\fBsigma8\fR" 12
+[a: s8] sigma8.
+
+.IP "\fBOmb\fR" 12
+dark matter content: Omega CDM.
+
+.IP "\fBOmc\fR" 12
+baryon content: Omega baryon.
+
+.IP "\fBOmnu\fR" 12
+massive neutrinos: Omega nu.
+
+.IP "\fBns\fR" 12
+spectral index of linear P(k).
+
+.IP "\fBw\fR" 12
+equation of state of dark energy.
+
+.IP "\fBfnamePS\fR" 12
+[a: ps] linear power spectrum.
+
+.IP "\fBrootDir\fR" 12
+[a: root] gives output dir, where output files will be written. If this folder does not exist it will be created. If it does exist it will be overwritten.
+
+.IP "\fprefix\fR" 12
+[a: pre] prefix to use in output file names.
+
+.IP "\fBpath_Bells\fR" 12
+[a: bellout]  Output dir, where output files will be written.
+
+.IP "\fBpreScript\fR" 12
+scripts in shell or python that can be run in pre-processing. Use in combinations with 'options=pre-processing'. Last setting is necessary to activate the script.
+
+.IP "\fBposScript\fR" 12
+scripts in shell or python that can be run in post-processing. Use in combinations with 'options=post-processing'. Last setting is necessary to activate the script.
+
+.IP "\fBverbose\fR" 12
+[a: verb] to print messages to standard output (stdout). There are four levels of information. When is "0", no information is written.
+
+.IP "\fBverbose_log\fR" 12
+[a: verblog] to save messages to a log file (in directory "tmp"). When is "0" no information is written.
+
+.IP "\fBnumberThreads\fR" 12
+[a: nthreads] To set the number of threads to use (OpenMP).
+
+.IP "\fBoptions\fR" 12
+[a: opt] you may give here various code behavior options, like 'smooth-pivot', 'stop', 'pre-processing', 'post-processing', etcetera.
+
+.SH EXAMPLES
+
+Note: It is assumed that working directory is cTreeBalls, as was created when was git cloned. First create the executable, 'wlcf':
+
+.sp
+$ make clean; make all
+
+.sp
+cd tests
+
+.sp
+$ time ../wlcf ps=./input/linear_pk_Takahashi_z0.txt verb=2
+
+.sp
+You will have computations written in files in a directory named with option \fBrootDir\fR. Not given here then it is used default 'Output'. If this directory does not exist, it will be created.
+Also will be created a directory named "tmp" in this output folder, where a log file will be saved.
+
+.sp
+We finish with the following example:
+
+.sp
+$ time python python/kappa_corr.py
+
+.sp
+Plot the results with:
+
+.sp
+$ python python/xi3pcf_flatten_curves.py
+
+.sp
+Note: python version 3 was used with numpy and matplotlib modules installed.
+
+.SH SEE ALSO
+fkpt(1) mgpt(1) cballs(1) wlcf(1)
+
+.SH COPYRIGHT
+Copyright (C) 2026--
+.br
+Alejandro Aviles et al.
+.br

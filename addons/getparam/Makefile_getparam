@@ -1,0 +1,17 @@
+# ----- MAKE FILE machine definitions (getparam routines) -----
+# Mario A. Rodriguez-Meza, Ciudad de Mexico, 01.05.2026
+#
+#
+
+#B Set of settings
+#
+ifeq ($(GETPARAMON),1)
+OPT2 += -DGETPARAM
+GETPARAM = ../addons/getparam/
+vpath %.c ./addons/getparam/
+INCLUDES += -I$(GETPARAM)
+HEADERFILES += $(wildcard $(GETPARAM)/*.h)
+EXTERNAL += getparam.o
+endif
+#
+#E

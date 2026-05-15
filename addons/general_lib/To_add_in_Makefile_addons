@@ -1,0 +1,26 @@
+# ----- MAKE FILE machine definitions (AddOns) -----
+# Mario A. Rodriguez-Meza, Ciudad de Mexico, 01.05.2026
+#
+#
+
+#B Set of settings
+#
+#
+
+#B To add in ../Makefile_addons
+#
+# GENERALLIB
+# For cython interfacing...
+#
+# These lines are added to ../Makefile_addons_settings
+#
+#GENERALLIBON = 1
+#
+#   ... then comment them
+#
+ifeq ($(GENERALLIBON),1)
+include $(MACHINES_DIR)/addons/general_lib/Makefile_general_lib
+endif
+#E
+
+

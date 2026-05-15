@@ -1,0 +1,17 @@
+# ----- MAKE FILE machine definitions (nagbody routines) -----
+# Mario A. Rodriguez-Meza, Ciudad de Mexico, 01.05.2026
+#
+#
+
+#B Set of settings
+#
+ifeq ($(GENERALLIBON),1)
+OPT2 += -DGENERALLIB
+GENERALLIB = ../addons/general_lib/
+vpath %.c ./addons/general_lib/
+INCLUDES += -I$(GENERALLIB)
+HEADERFILES += $(wildcard $(GENERALLIB)/*.h)
+EXTERNAL += clib.o
+endif
+#
+#E

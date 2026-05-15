@@ -1,0 +1,31 @@
+# ----- MAKE FILE machine definitions (AddOns) -----
+# Mario A. Rodriguez-Meza, Ciudad de Mexico, 01.05.2026
+#
+#
+
+#B Set of settings
+#
+#
+
+#B To add in ../Makefile_addons
+#
+# GETPARAM
+# For getparam functionality...
+#
+# These lines are added to ../Makefile_addons_settings
+#
+#ifeq ($(GETPARAMON),1)
+#GETPARAMON = 1
+#else
+#$(info ) To compile with GETPARAM needs ADDONSON = 1, deactivating...
+#GETPARAMON = 0
+#endif
+#
+#   ... then comment them
+#
+ifeq ($(GETPARAMON),1)
+include $(MACHINES_DIR)/addons/getparam/Makefile_getparam
+endif
+#E
+
+
