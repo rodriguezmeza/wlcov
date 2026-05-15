@@ -8,6 +8,8 @@ import AnalyticalCov as cov # Code to pass from C to Pyhton
 import numpy as np
 import matplotlib.pyplot as plt
 
+ofilename = "analytic_covariance_22_noise.pdf"
+
 thtdata = np.array([0.00232712, 0.00275673, 0.00326565, 0.00386852, 0.00458269,
        0.00542871, 0.00643091, 0.00761812, 0.00902451, 0.01069053,
        0.01266412, 0.01500206, 0.0177716 , 0.02105243, 0.02493894,
@@ -30,6 +32,9 @@ plt.colorbar(label="Covariance")
 plt.title("Covariance Matrix")
 plt.xlabel("Index")
 plt.ylabel("Index")
-plt.show()
+plt.savefig(ofilename,dpi=300)
+# if you want plot to be shown, uncomment this line
+#plt.show()
+
 
 
