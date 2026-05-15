@@ -114,6 +114,5 @@ wlcov use/is based on the following codes or projects:
 -   [GSL](https://www.gnu.org/software/gsl/)
 -   [CLASS](https://github.com/lesgourg/class_public)
 
-Also Alejandro Aviles acknowledges support by grants UNAM PAPIIT IA101825 and SECIHTI CBF2023-2024-162.
-
+This work was supported by UNAM PAPIIT grant IA101825 and SECIHTI grant CBF2023-2024-162.
 
