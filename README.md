@@ -12,7 +12,7 @@ Code to compute the Gaussian piece of the 3PCF in a harmonic basis of scalar fie
 
 Contributor:
 
-- [Mario A. Rodriguez-Meza(https://github.com/gnizq64)
+- [Mario A. Rodriguez-Meza(https://github.com/rodriguezmeza)
   marioalberto.rodriguezmeza@gmail.com
 
 ## Compilation
