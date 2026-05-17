@@ -95,7 +95,7 @@ Note: this interface in Cython was tested in a python environment with `python3.
 
 ## Plotting utilities
 
-Several Jupyter notebooks, written by `xxx`, are available to process wlcov results. They are in the folder `tests\notebooks`. 
+Several Jupyter notebooks, written by `xxx`, are available to process wlcov results. They are in the folder `tests/notebooks`. 
 
 Other python scripts are in directory `tests/python`.
 
