@@ -288,9 +288,7 @@ local void ReadParametersCmdline(struct  cmdline_data* cmd,
     //B Miscellaneous parameters
     cmd->verbose = GetiParam("verbose");
     cmd->verbose_log = GetiParam("verbose_log");
-#ifdef OPENMPCODE
     cmd->numthreads = GetiParam("numberThreads");
-#endif
     cmd->options = GetParam("options");
     //E
 
@@ -365,9 +363,7 @@ local void ReadParameterFile(struct  cmdline_data* cmd,
     //B Miscellaneous parameters
     IPName(cmd->verbose,"verbose");
     IPName(cmd->verbose_log,"verbose_log");
-#ifdef OPENMPCODE
     IPName(cmd->numthreads,"numberThreads");
-#endif
     SPName(cmd->options,"options",MAXLENGTHOFSTRSCMD);
     //E
 
@@ -738,9 +734,7 @@ int PrintParameterFile(struct  cmdline_data *cmd,
             //B Miscellaneous parameters
             fprintf(fdout,FMTI,"verbose",cmd->verbose);
             fprintf(fdout,FMTI,"verbose_log",cmd->verbose_log);
-#ifdef OPENMPCODE
             fprintf(fdout,FMTI,"numberThreads",cmd->numthreads);
-#endif
             fprintf(fdout,FMTT,"options",cmd->options);
             //E
             
@@ -811,6 +805,11 @@ int SetNumberThreads(struct  cmdline_data *cmd)
 {
     omp_set_num_threads(cmd->numthreads);
 
+    return SUCCESS;
+}
+#else
+int SetNumberThreads(struct  cmdline_data *cmd)
+{
     return SUCCESS;
 }
 #endif

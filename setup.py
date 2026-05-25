@@ -28,10 +28,12 @@ import numpy as nm
 import os
 import subprocess as sbp
 import os.path as osp
+import shlex
 
 # Recover the gcc compiler
+compiler_command = shlex.split(os.environ.get("CC", "gcc"))
 GCCPATH_STRING = sbp.Popen(
-    ['gcc', '-print-libgcc-file-name'],
+    compiler_command + ['-print-libgcc-file-name'],
     stdout=sbp.PIPE).communicate()[0]
 GCCPATH = osp.normpath(osp.dirname(GCCPATH_STRING)).decode()
 
@@ -45,7 +47,7 @@ liblist = ["wlcov","gsl","gslcblas"]
 #
 
 MVEC_STRING = sbp.Popen(
-    ['gcc', '-lmvec'],
+    compiler_command + ['-lmvec'],
     stderr=sbp.PIPE).communicate()[1]
 if b"mvec" not in MVEC_STRING:
     liblist += ["mvec","m"]
@@ -63,6 +65,20 @@ general_lib_folder = os.path.join(os.path.join(root_folder, "addons"),"general_l
 pxd_folder = os.path.join(os.path.join(root_folder, "addons"),"pxd")
 wlcovpy_folder = os.path.join(root_folder, "python")
 
+gsl_prefix = os.environ.get("GSL_DIR")
+gsl_include_dir = os.environ.get("GSL_INCLUDE_DIR")
+gsl_library_dir = os.environ.get("GSL_LIBRARY_DIR")
+gsl_include_dirs = []
+gsl_library_dirs = []
+if gsl_include_dir:
+    gsl_include_dirs.append(gsl_include_dir)
+elif gsl_prefix:
+    gsl_include_dirs.append(os.path.join(gsl_prefix, "include"))
+if gsl_library_dir:
+    gsl_library_dirs.append(gsl_library_dir)
+elif gsl_prefix:
+    gsl_library_dirs.append(os.path.join(gsl_prefix, "lib"))
+
 # Recover the wlcov version
 with open(os.path.join(class_lib_folder, 'common.h'), 'r') as v_file:
     for line in v_file:
@@ -77,11 +93,10 @@ wlcovpy_ext = Extension("wlcovpy", [os.path.join(wlcovpy_folder, "wlcovpy.pyx")]
                            class_lib_folder,
 #                           nagbody_lib_folder,
                            general_lib_folder, getparam_folder, pxd_folder,
-                           source_folder,
-                            '/Users/mar/local/gsl/include/'
+                           source_folder
 #                           gsl_folder,
 #                           octree_ggg_omp_folder,
-                           ],
+                           ] + gsl_include_dirs,
                            libraries=liblist,
                            library_dirs=[root_folder, GCCPATH,
 # these two lines must have cfitsio and gsl library path in your system...
@@ -92,8 +107,7 @@ wlcovpy_ext = Extension("wlcovpy", [os.path.join(wlcovpy_folder, "wlcovpy.pyx")]
 # for Nersc use: module load cray-fftw/3.3.10.3 and then comment above line and uncomment:
 #                            '/opt/cray/pe/fftw/3.3.10.3/x86_milan/lib',
 #                            '/Users/mar/NagBody_pkg/local/gsl/lib/'
-                            '/Users/mar/local/gsl/lib/'
-                           ],
+                           ] + gsl_library_dirs,
                            extra_link_args=['-lgomp', '-lz'],
                        )
 import sys

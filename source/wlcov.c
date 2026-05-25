@@ -16,6 +16,10 @@
 
 #include "globaldefs.h"
 
+#ifdef PXD
+#include "wlcf_pxd_05.h"
+#endif
+
 
 //B socket:
 #ifdef ADDONS

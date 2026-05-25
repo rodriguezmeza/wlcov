@@ -68,9 +68,7 @@ string defv[] = {  ";"HEAD1": " HEAD2 "\n\t " HEAD3,
     //B Miscellaneous parameters
     "verbose=2",                        ";Option to activate the amount of information sent to standard output", ":verb",
     "verbose_log=1",                    ";Option to activate the amount of information sent to log file", ":verblog",
-#ifdef OPENMPCODE
     "numberThreads=16",                  ";To set the number of threads to use (OpenMP)", ":nthreads",
-#endif
     "options=",                         ";Various control options, i.e.,... , etc.", ":opt",
     //E
 

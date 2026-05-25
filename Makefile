@@ -47,13 +47,15 @@ $(EXEC): $(OBJS) $(EXTERNAL) $(MAIN)
 	$(CC) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o $(EXEC) $(addprefix build/,$(notdir $^)) $(MLIBS)
 
 wlcovpy: lib$(EXEC).a python/wlcovpy.pyx python/cwlcovpy.pxd
-	export CC=$(CC); output=$$($(PYTHON) -m pip install . 2>&1); \
+	export CC=$(CC); output=$$($(PYTHON) -m pip install . 2>&1); status=$$?; \
     echo "$$output"; \
     if echo "$$output" | grep -q "ERROR: Cannot uninstall"; then \
         site_packages=$$($(PYTHON) -c "import distutils.sysconfig; print(distutils.sysconfig.get_python_lib())" || $(PYTHON) -c "import site; print(site.getsitepackages()[0])") && \
         echo "Cleaning up previous installation in: $$site_packages" && \
-        rm -rf $$site_packages/wlcfpy* && \
+        rm -rf $$site_packages/wlcovpy* && \
         $(PYTHON) -m pip install .; \
+    elif [ $$status -ne 0 ]; then \
+        exit $$status; \
     fi
 
 .PHONY : clean

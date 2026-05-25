@@ -1,118 +1,69 @@
 # wlcov
 
-Code to compute the Gaussian piece of the 3PCF in a harmonic basis of scalar fields over the sphere within Limber approximation
+`wlcov` computes the Gaussian contribution to weak-lensing three-point
+covariance terms in a harmonic basis on the sphere under the Limber
+approximation.  The project provides a compiled C executable, a static library,
+a Cython wrapper (`wlcovpy`), and small Python examples for scripted workflows.
+
+## Documentation
+
+The full Sphinx documentation lives in `docs/` and is structured for
+ReadTheDocs-style publication:
+
+```bash
+python3 -m pip install --user -r docs/requirements.txt
+cd docs
+make html
+make man
+make latexpdf
+```
+
+The generated artifacts are `docs/_build/html/index.html`,
+`docs/_build/man/wlcov.1`, and `docs/_build/latex/wlcov.pdf`.
+
+## Quick Install
+
+Install Python build dependencies, then build the C executable and wrapper:
+
+```bash
+python3 -m pip install --user numpy Cython
+make clean
+make PYTHON=python3 GSL_INCL="-I/usr/include" \
+     GSL_LIBS="-L/usr/lib/x86_64-linux-gnu -lgsl -lgslcblas" all
+```
+
+For a custom GSL installation, set `GSL_DIR`, `GSL_INCLUDE_DIR`, and
+`GSL_LIBRARY_DIR`, and pass matching `GSL_INCL` and `GSL_LIBS` values to
+`make`.
+
+## Quick Run
+
+```bash
+./wlcov inputfile=tests/input/Cls_ep2.txt rootDir=Output_quick \
+   r=0.01 theta1=0.01 theta2=0.012 thetap1=0.011 thetap2=0.013 \
+   m=0 mp=0 ellmin=1 ellmax=25 ppp=4 verbose=0 verbose_log=0
+```
+
+Python wrapper smoke test:
+
+```bash
+cd tests
+python3 python/kappa_cov.py --fnamePS input/Cls_ep2.txt \
+   --outdir Output_python --ellmax 25 --ppp 4
+```
 
 ## Authors
 
-- **Sofía Samario-Nava**  
-  ssamario@icf.unam.mx
-
-- **Alejandro Avilés**  
-  aviles@icf.unam.mx
+- Sofia Samario-Nava, ssamario@icf.unam.mx
+- Alejandro Aviles, aviles@icf.unam.mx
 
 Contributor:
 
-- [Mario A. Rodriguez-Meza(https://github.com/gnizq64)
-  marioalberto.rodriguezmeza@gmail.com
-
-## Table of Contents
-
--   [Introduction](#introduction)
--   [Compiling and getting started](#compiling-and-getting-started)
--   [Configuration](#configuration)
--   [Parameters](#parameters)
--   [Python](#python)
--   [License](#license)
--   [Acknowledgements](#acknowledgements)
-
-## Introduction
-
-**wlcov** is a C code for computing correlation functions using SPT, EFT and Halo model. So far can compute only the 3-point correlation function (3pcf) for galaxy weak leansing convergence in a plane wave expansion.
-
-A short documentation can be found in a html version of the man (linux manual) version man. Look for it (`docs/man/wlcf.html`) an open it with a web explorer.
-
-## Compiling and getting started
-
-Download the code by cloning it from https://github.com/rodriguezmeza/wlcov.
-
-Dependencies: wlcf needs gsl installed in your system. Sources are included. If your system does not have it, try installing them. In case of problems go to web page https://www.gnu.org/software/gsl/ for details or ask to your system administrator. Make necessary changes in `Makefile_machine` file and look up for `GSL` at the end of the file.
-
-Go to the wlcov directory (`cd wlcov/`) and compile (`make clean; make all`). If the first compilation attempt fails, you may need to open the Makefile_machine file and adapt the name of the compiler (default: gcc), of the optimization flag (default: `-O4 -ffast-math`) and of the OpenMP flag (default: `-fopenmp`; this flag is optional, you are free to compile without OpenMP if you don't want parallel execution; note that you will need the version 4.2 or higher of gcc to be able to compile with `-fopenmp`). The code has been tested with gcc version 10 and 12 and would be working with version 11, and 13. (In particular, for compiling on Mac >= 10.9 despite of the clang incompatibility with OpenMP).
-
-To check that the code runs, if you are in `wlcov` directory, type:
-
-    $ make clean; make all
-    $ cd tests
-    $ ../wlcov
-
-It will run using all default values and a directory named `Output` will be created under `tests`. **wlcov** will save all output files and a log file in `Output/tmp`. A file with the parameter values use in the run named `parameters_null-usedvalues` will also be saved. You may use it as a template to create your own parameter files.
-
-You may consult the code´s man page for more detailed information on how to run **wlcov**:
-
-    $ man ../docs/man/wlcov.1
-
-
-## Configuration
-
-**wlcov** can be configured by switching on/off some options. Configuration file is `Makefile_setting`.
-
-| Option         | Description                                                                                                                                                   |
-|:--------------:|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `USEGSL`       | `= 1` switch on/off computation using GSL routines. Always set it to `1`.                                                                                     |
-| `OPENMPMACHINE`     | `= 1` for enabling OpenMP parallelism<br />(Specify the corresponding compiler flag in `Makefile_machine` file)                                                             |
-| `ADDONSON`  | `= 1` for adding more funcionality to the code, like other searching methods, other catalog formats                                                                                                |
-
-**Note**:
-After changing `Makefile_settings` in order to have the new settings active in **wlcov** you have to re-compile the code: `make clean; make all`. 
-
-## Parameters
-
-The list of available command line parameters can be consulted using the `-h` or `--help` flags:
-
-    $ ../wlcov --help
-
-See also the man page as explained above. If you execute:
-
-    $ ../wlcov --clue
-
-you will receive in response how **wlcov** should be executed using command line parameters. Just pick up the parameteres you need and, if necessary, modify their values according to your needs.
-
-## Python
-
-To run the code in Python, import the `AnalyticalCov.py` module, which contains the functions needed to compute the covariance matrix and execute:
-
-    $ python ./python/covariance_example.py
-
-To install wlcf python module (wlcovpy) just execute (you already do it...):
-
-    $ make clean; make all
-
-To test it go to directory `tests` and run:
-
-    $ python ./python/kappa_cov.py
-
-Note: this interface in Cython was tested in a python environment with `python3.12`.
-
-## Plotting utilities
-
-Several Jupyter notebooks, written by `xxx`, are available to process wlcov results. They are in the folder `tests/notebooks`. 
-
-Other python scripts are in directory `tests/python`.
-
+- Mario A. Rodriguez-Meza, marioalberto.rodriguezmeza@gmail.com
 
 ## License
 
-**wlcov** was written by Sofia Samario & A. Aviles et al., is open source and distributed under the [MIT license](LICENSE). If you use this program in research work that results in publications, please cite the following paper:
-
-Sofia Samario et al., [arXiv:2506.19811](https://arxiv.org/abs/2506.19811)
-
-## Acknowledgements
-
-wlcov use/is based on the following codes or projects:
--   [Zeno](https://home.ifa.hawaii.edu/users/barnes/zeno/index.html)
--   [Numerical recipies](https://numerical.recipes/)
--   [GSL](https://www.gnu.org/software/gsl/)
--   [CLASS](https://github.com/lesgourg/class_public)
-
-This work was supported by UNAM PAPIIT grant IA101825 and SECIHTI grant CBF2023-2024-162.
-
+`wlcov` is distributed under the MIT license.  If you use this program in
+research that results in publications, please cite Sofia Samario et al.,
+arXiv:2506.19811, and include the code version and runtime configuration used
+for the analysis.
