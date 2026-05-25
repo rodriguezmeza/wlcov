@@ -148,7 +148,7 @@ OPT2 += -DUSEGSL
 #    GSL_INCL =  -I$(NAGBODYDIR)/include
 #    GSL_LIBS =  -L$(NAGBODYDIR)/lib -lgsl -lgslcblas
     CCFLAG += $(GSL_INCL)
-    LDFLAG += $(GSL_LIBS)
+    MLIBS := $(GSL_LIBS) $(MLIBS)
 endif # ! USEGSL
 #E
 # -------------------
@@ -161,4 +161,3 @@ CCFLAG += $(OPT2)
 
 %.o: %.c .base $(HEADERFILES)
 	cd $(WRKDIR);$(CC) $(OPTFLAG) $(OMPFLAG) $(CCFLAG) $(INCLUDES) -c ../$< -o $*.o
-

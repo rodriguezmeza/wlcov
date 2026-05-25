@@ -271,12 +271,10 @@ int input_read_parameters_general(struct cmdline_data *cmd,
     if (flag == TRUE)
       cmd->verbose_log = param;
 
-#ifdef OPENMPCODE
     class_call(parser_read_int(pfc,"numberThreads",&param,&flag,errmsg),
                errmsg,errmsg);
     if (flag == TRUE)
       cmd->numthreads = param;
-#endif
 
     class_call(parser_read_string(pfc,"options",&string1,&flag1,errmsg),
                errmsg,errmsg);
@@ -334,9 +332,7 @@ int input_default_params(struct cmdline_data *cmd)
     //B Miscellaneous parameters
     cmd->verbose = 0;
     cmd->verbose_log = 0;
-#ifdef OPENMPCODE
     cmd->numthreads = 16;
-#endif
     cmd->options = "\0";
     //E
 
@@ -382,8 +378,8 @@ local void testParameterFile(struct  cmdline_data* cmd,
     RPName(cmd->r,"r");
     RPName(cmd->theta1,"theta1");
     RPName(cmd->thetap1,"thetap1");
-    RPName(cmd->theta2,"theta1");
-    RPName(cmd->thetap2,"thetap1");
+    RPName(cmd->theta2,"theta2");
+    RPName(cmd->thetap2,"thetap2");
     //E
 
     //B Parameters to control the I/O file(s)
@@ -397,16 +393,14 @@ local void testParameterFile(struct  cmdline_data* cmd,
     IPName(cmd->ppp,"ppp");
 
     //B Set of parameters needed to integrate
-    RPName(cmd->ellmax,"ellmin");
+    RPName(cmd->ellmin,"ellmin");
     RPName(cmd->ellmax,"ellmax");
     //E
 
     //B Miscellaneous parameters
     IPName(cmd->verbose,"verbose");
     IPName(cmd->verbose_log,"verbose_log");
-#ifdef OPENMPCODE
     IPName(cmd->numthreads,"numberThreads");
-#endif
     SPName(cmd->options,"options",MAXLENGTHOFSTRSCMD);
     //E
 

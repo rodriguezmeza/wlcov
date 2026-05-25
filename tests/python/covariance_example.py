@@ -4,26 +4,28 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-import AnalyticalCov as cov # Code to pass from C to Pyhton
+import AnalyticalCov as cov # Code to pass from C to Python
 import numpy as np
+import matplotlib
+
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-ofilename = "analytic_covariance_22_noise.pdf"
+ofilename = "analytic_covariance_quickstart.pdf"
 
-thtdata = np.array([0.00232712, 0.00275673, 0.00326565, 0.00386852, 0.00458269,
-       0.00542871, 0.00643091, 0.00761812, 0.00902451, 0.01069053,
-       0.01266412, 0.01500206, 0.0177716 , 0.02105243, 0.02493894,
-       0.02954293, 0.03499688, 0.04145769, 0.04911122, 0.05817769]) # Theta array
+thtdata = np.array([0.00232712, 0.00275673, 0.00326565, 0.00386852])
 
 covariance = cov.compute_cov_noise(
     thtdata,
-    rows=7, #rows, diagonals and dimension are in order to add a mask
-    diagonals=4,
-    dim=20,
+    rows=1,
+    diagonals=1,
+    dim=4,
     m=2, #multipole 1
     mp=2, #multipole 2
+    ppp=4,
     noise=6.1e-11, #add noise
-    output_file="analytic_covariance_22_noise.txt" #if you don't want to save the output just put None
+    input_file="./input/Cls_ep2.txt",
+    output_file="analytic_covariance_quickstart.txt" #if you don't want to save the output just put None
 )
 
 plt.figure(figsize=(6,5))
@@ -35,6 +37,4 @@ plt.ylabel("Index")
 plt.savefig(ofilename,dpi=300)
 # if you want plot to be shown, uncomment this line
 #plt.show()
-
-
 

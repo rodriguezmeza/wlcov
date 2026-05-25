@@ -1,0 +1,16 @@
+build/
+docs/_build/
+libwlcov.a
+python/wlcovpy.c
+wlcov
+wlcovpy.egg-info/
+
+*.pyc
+__pycache__/
+.DS_Store
+
+Output*/
+tests/Output*/
+tests/Cls_temp.txt
+tests/analytic_covariance_quickstart.pdf
+tests/analytic_covariance_quickstart.txt
