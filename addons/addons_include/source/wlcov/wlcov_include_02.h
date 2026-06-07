@@ -10,6 +10,9 @@
 #define _wlcov_include_02_h
 
 
+#ifdef PXD
+#include "wlcov_pxd_05.h"
+#endif
 
 /*
  Add your addon item here

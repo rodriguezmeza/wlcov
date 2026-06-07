@@ -27,23 +27,33 @@ struct cmdline_data{
     double thetap2;
     double ellmin;
     double ellmax;
-    string inputfile;
+    string clsfile;
     int m;
     int mp;
     int ppp;
 
+    //B Numerical parameters
+    int Nr;
+    double rmin;
+    double rmax;
+    //E
+
     string rootDir;
     short verbose;
     short verbose_log;
-//#ifdef OPENMPCODE
     int numthreads;
-//#endif
     string options;
     //E
 
     string version;
 
     string paramfile;
+
+//B socket:
+#ifdef ADDONS
+#include "cmdline_data_include.h"
+#endif
+//E
 
 };
 

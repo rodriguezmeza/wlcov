@@ -2,27 +2,28 @@
 <BODY>
 <PRE>
 <!-- Manpage converted by man2html 3.0.1 -->
-<B><A HREF="wlcf.html">wlcf(1)</A></B>                         LSST/S3 PROJECT                        <B><A HREF="wlcf.html">wlcf(1)</A></B>
+<B><A HREF="wlcov.html">wlcov(1)</A></B>                        LSST/S3 PROJECT                       <B><A HREF="wlcov.html">wlcov(1)</A></B>
 
 
 
 
 </PRE>
 <H2>NAME</H2><PRE>
-       wlcf - (2,3)-Point Correlation Function modeling computation code
+       wlcov - code to compute the Gaussian piece of the 3PCF in a harmonic
+       basis of scalar fields over the sphere within Limber approximation
 
 
 </PRE>
 <H2>SYNOPSIS</H2><PRE>
-       <B>wlcf</B> [ <I>parameter</I><B>_</B><I>file</I><B>_</B><I>name</I> ] [ <I>options</I> ]
+       <B>wlcov</B> [ <I>parameter</I><B>_</B><I>file</I><B>_</B><I>name</I> ] [ <I>options</I> ]
 
 
 
 
 </PRE>
 <H2>DESCRIPTION</H2><PRE>
-       <B>wlcf</B> - computes the 2 or/and 3 point correlation functions using
-       tree/balls methods, complexity O(N Log N).
+       <B>wlcov</B> - computes the Gaussian piece of the 3PCF in a harmonic basis of
+       projected scalar fields.
 
 
 
@@ -42,7 +43,7 @@
        <B>-help</B>       By writting
 
 
-                   $ wlcf --help
+                   $ wlcov --help
 
 
                    you will get the list of all parameters and their default
@@ -64,7 +65,7 @@
                    Overwrite parameters values below. You may input this
                    filename by only writing:
 
-                   $ wlcf paramfile=parameters_input_file_name
+                   $ wlcov paramfile=parameters_input_file_name
 
                    Parameter input file may be created by hand with the editor
                    of your choice. Comment lines start with an "#" or "%".
@@ -74,15 +75,15 @@
                    The order of the option lines does not matter.  Also you
                    may create an example input file by executing
 
-                   $ wlcf
+                   $ wlcov
 
-                   This will run the <B>wlcf</B> code with default values and when it
-                   finish you will have in your running output directory (by
-                   default is 'Output', see below in 'rootDir' line) the file
-                   "parameters_null-wlcf-usedvalues". Now you may edit this
-                   file to adapt to your own run parameters. This file can be
-                   overwritten so it may be helpful to change this file name
-                   to whatever apropriate, and move it elsewhere.
+                   This will run the <B>wlcov</B> code with default values and when
+                   it finish you will have in your running output directory
+                   (by default is 'Output', see below in 'rootDir' line) the
+                   file "parameters_null-wlcov-usedvalues". Now you may edit
+                   this file to adapt to your own run parameters. This file
+                   can be overwritten so it may be helpful to change this file
+                   name to whatever apropriate, and move it elsewhere.
 
 
                    Note that parameter alias are not allowed in a parameter
@@ -92,55 +93,43 @@
                    the parameter file.
 
 
-       <B>z</B>           is redshift to use.
+       <B>r</B>           is redshift to use.
 
 
-       <B>h</B>           Hubble parameter.
+       <B>theta1</B>      theta1 parameter.
 
 
-       <B>sigma8</B>      [a: s8] sigma8.
+       <B>thetap1</B>     thetap1 parameter.
 
 
-       <B>Omb</B>         dark matter content: Omega CDM.
+
+       <B>theta2</B>      theta2 parameter.
 
 
-       <B>Omc</B>         baryon content: Omega baryon.
+       <B>thetap2</B>     thetap2 parameter.
 
 
-       <B>Omnu</B>        massive neutrinos: Omega nu.
+       <B>ellmin</B>      ellmin parameter.
 
 
-       <B>ns</B>          spectral index of linear P(k).
+       <B>m</B>           m parameter.
 
 
-       <B>w</B>           equation of state of dark energy.
+       <B>mp</B>          mp parameter.
 
 
-       <B>fnamePS</B>     [a: ps] linear power spectrum.
+       <B>ppp</B>         ppp parameter.
+
+
+       <B>ellmin</B>      ellmin parameter.
+
+
+       <B>inputfile</B>   [a: in] input file.
 
 
        <B>rootDir</B>     [a: root] gives output dir, where output files will be
                    written. If this folder does not exist it will be created.
                    If it does exist it will be overwritten.
-
-
-       refix       [a: pre] prefix to use in output file names.
-
-
-       <B>path_Bells</B>  [a: bellout]  Output dir, where output files will be
-                   written.
-
-
-       <B>preScript</B>   scripts in shell or python that can be run in pre-
-                   processing. Use in combinations with 'options=pre-
-                   processing'. Last setting is necessary to activate the
-                   script.
-
-
-       <B>posScript</B>   scripts in shell or python that can be run in post-
-                   processing. Use in combinations with 'options=post-
-                   processing'. Last setting is necessary to activate the
-                   script.
 
 
        <B>verbose</B>     [a: verb] to print messages to standard output (stdout).
@@ -164,8 +153,8 @@
 
 </PRE>
 <H2>EXAMPLES</H2><PRE>
-       Note: It is assumed that working directory is cTreeBalls, as was
-       created when was git cloned. First create the executable, 'wlcf':
+       Note: It is assumed that working directory is wlcov, as was created
+       when was git cloned. First create the executable, 'wlcov':
 
 
        $ make clean; make all
@@ -174,7 +163,7 @@
        cd tests
 
 
-       $ time ../wlcf ps=./input/linear_pk_Takahashi_z0.txt verb=2
+       $ time ../wlcov ps=./input/linear_pk_Takahashi_z0.txt verb=2
 
 
        You will have computations written in files in a directory named with
@@ -187,7 +176,7 @@
        We finish with the following example:
 
 
-       $ time python python/kappa_corr.py
+       $ time python python/kappa_cov.py
 
 
        Plot the results with:
@@ -210,9 +199,9 @@
 </PRE>
 <H2>COPYRIGHT</H2><PRE>
        Copyright (C) 2026--
-       Alejandro Aviles et al.
+       Sofia Samario &amp; Alejandro Aviles
 
-UNIX                              April 2026                           <B><A HREF="wlcf.html">wlcf(1)</A></B>
+UNIX                              April 2026                          <B><A HREF="wlcov.html">wlcov(1)</A></B>
 </PRE>
 <HR>
 <ADDRESS>

@@ -23,13 +23,9 @@ $(info To compile with PXD needs CLASSLIBON = 1, deactivating...)
 PXDON = 0
 endif
 
-# GETPARAM
-# For getparam lib...
-GETPARAMON = 1
-
-# GENERALLIB
-# For general lib...
-GENERALLIBON = 1
+# COSMOLIB
+# For wlcf lib...
+COSMOLIBON = 0
 
 #E Set of settings
 

@@ -1,5 +1,15 @@
-#ifndef _wlcf_h
-#define _wlcf_h
+#ifndef _wlcov_h
+#define _wlcov_h
+
+//B standar libraries
+#include <stdio.h>
+#include <gsl/gsl_sf_bessel.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <math.h>
+#include <stddef.h>
+//E
 
 #include "stdinc.h"
 #include "common_defs.h"
@@ -12,4 +22,4 @@
 #include "protodefs_pxd.h"
 #include "input.h"
 
-#endif // ! _wlcf_h
+#endif // ! _wlcov_h

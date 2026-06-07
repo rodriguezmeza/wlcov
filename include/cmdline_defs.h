@@ -44,34 +44,41 @@ and if necessary in
 #define HEAD3	"..."
 
 string defv[] = {  ";"HEAD1": " HEAD2 "\n\t " HEAD3,
-    "paramfile=",			            ";Parameter input file. Overwrite what follows",
+    "paramfile=",		        ";Parameter input file. Overwrite what follows",
 
-    "r=0.116355",                                     ";r",
-    "theta1=0.1",                                        ";theta1 parameter",
-    "thetap1=0.1",                                        ";thetap1 parameter",
-    "theta2=0.1",                                        ";theta2 parameter",
-    "thetap2=0.1",                                        ";thetap2 parameter",
-    "m=0",                                       ";m parameter",
-    "mp=0",                                       ";mp parameter",
-    "ppp=20",                                       ";ppp parameter",
+    "r=0.116355",               ";r",
+    "theta1=0.1",               ";theta1 parameter",
+    "thetap1=0.1",              ";thetap1 parameter",
+    "theta2=0.1",               ";theta2 parameter",
+    "thetap2=0.1",              ";thetap2 parameter",
+    "m=0",                      ";multipole",
+    "mp=0",                     ";multipole",
+    "ppp=20",                   ";points per period",
 
     //B Parameters to control the I/O file(s)
-    // Input catalog parameters
-    "inputfile=CkappaT_ep.dat",   ";input file", ":in",
+    "clsfile=CkappaT_ep.dat",   ";input file", ":in",
     // Output parameters
-    "rootDir=Output",                               ";Output dir, where output files will be written", ":root",
+    "rootDir=Output",           ";Output dir, where output files will be written", ":root",
     //E
 
-    "ellmax=2000.0",                               ";ellmax",
-    "ellmin=1",                                 ";ellmin",
+    "ellmax=2000.0",            ";ellmax",
+    "ellmin=1",                 ";ellmin",
+
+    //B Numerical parameters
+    "Nr=50",                        ";Nr",
+    "rmin=0.00232711",              ";rmin",
+    "rmax=0.349066",                ";rmax",
+    //E
 
     //B Miscellaneous parameters
-    "verbose=2",                        ";Option to activate the amount of information sent to standard output", ":verb",
-    "verbose_log=1",                    ";Option to activate the amount of information sent to log file", ":verblog",
+    "verbose=2",                ";Option to activate the amount of information sent to standard output", ":verb",
+    "verbose_log=1",            ";Option to activate the amount of information sent to log file", ":verblog",
 #ifdef OPENMPCODE
-    "numberThreads=16",                  ";To set the number of threads to use (OpenMP)", ":nthreads",
+    "numberThreads=16",         ";To set the number of threads to use (OpenMP)", ":nthreads",
+#else
+    "numberThreads=1",          "; set it to '1' if there is no OpenMP", ":nthreads",
 #endif
-    "options=",                         ";Various control options, i.e.,... , etc.", ":opt",
+    "options=",                 ";Various control options, i.e.,... , etc.", ":opt",
     //E
 
 //B socket:
@@ -80,7 +87,7 @@ string defv[] = {  ";"HEAD1": " HEAD2 "\n\t " HEAD3,
 #endif
 //E
 
-    "Version=1.0.0",			        ";S. Samario-Nava & A. Aviles (2026--)",
+    "Version=1.0.0",		    ";S. Samario-Nava, A. Aviles et al. (2026--)",
     NULL,
 };
 

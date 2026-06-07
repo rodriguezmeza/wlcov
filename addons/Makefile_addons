@@ -24,17 +24,10 @@ include $(MACHINES_DIR)/addons/pxd/Makefile_pxd
 endif
 #
 
-# GETPARAM
-# For getparam lib...
-ifeq ($(GETPARAMON),1)
-include $(MACHINES_DIR)/addons/getparam/Makefile_getparam
-endif
-#
-
-# GENERALLIB
-# For cython interfacing...
-ifeq ($(GENERALLIBON),1)
-include $(MACHINES_DIR)/addons/general_lib/Makefile_general_lib
+# COSMOLIB
+# For cosmo_lib interfacing...
+ifeq ($(COSMOLIBON),1)
+include $(MACHINES_DIR)/addons/cosmo_lib/Makefile_cosmo_lib
 endif
 #
 
@@ -57,7 +50,7 @@ vpath %.c $(ADDONS)
 INCLUDES += -I$(ADDONSDIR)
 INCLUDES += -I$(ADDONSDIR)/addons_include/addons
 INCLUDES += -I$(ADDONSDIR)/addons_include
-INCLUDES += -I$(ADDONSDIR)/addons_include/general_libs
+#INCLUDES += -I$(ADDONSDIR)/addons_include/general_libs
 INCLUDES += -I$(ADDONSDIR)/addons_include/include
 INCLUDES += -I$(ADDONSDIR)/addons_include/source/wlcov
 INCLUDES += -I$(ADDONSDIR)/addons_include/source/wlcovio
@@ -65,7 +58,7 @@ INCLUDES += -I$(ADDONSDIR)/addons_include/source/startrun
 HEADERFILES = $(wildcard $(ADDONSDIR)/*.h)
 HEADERFILES = $(wildcard $(ADDONSDIR)/addons/*.h)
 HEADERFILES = $(wildcard $(ADDONSDIR)/addons_include/*.h)
-HEADERFILES = $(wildcard $(ADDONSDIR)/addons_include/general_libs/*.h)
+#HEADERFILES = $(wildcard $(ADDONSDIR)/addons_include/general_libs/*.h)
 HEADERFILES = $(wildcard $(ADDONSDIR)/addons_include/include/*.h)
 HEADERFILES = $(wildcard $(ADDONSDIR)/addons_include/source/wlcov/*.h)
 HEADERFILES = $(wildcard $(ADDONSDIR)/addons_include/source/wlcovio/*.h)

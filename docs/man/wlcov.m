@@ -1,5 +1,5 @@
 't" t
-.TH wlcf 1 "April 2026" UNIX "LSST/S3 PROJECT"
+.TH wlcov 1 "April 2026" UNIX "LSST/S3 PROJECT"
 .na
 .nh   
 
@@ -10,7 +10,7 @@ wlcov - code to compute the Gaussian piece of the 3PCF in a harmonic basis of sc
 .sp
 
 .SH DESCRIPTION
-\fBwlcov\fR - computes the Gaussian piece of the 3PCF in a harmonic basis of projected scalar fields.
+\fBwlcov\fR - computes the covariance matrix at a given input physical parameters.
 
 .SH OPTIONS
 All the options have the structure
@@ -55,35 +55,34 @@ Note that parameter alias are not allowed in a parameter file. Also behaviour of
 is redshift to use.
 
 .IP "\fBtheta1\fR" 12
-theta1 parameter.
-
-.IP "\fBthetap1\fR" 12
-thetap1 parameter.
-
+physical parameter that characterize a lenght of a triangle.
 
 .IP "\fBtheta2\fR" 12
-theta2 parameter.
+physical parameter that characterize a lenght of a triangle.
+
+.IP "\fBthetap1\fR" 12
+physical parameter that characterize a lenght of a triangle.
 
 .IP "\fBthetap2\fR" 12
 thetap2 parameter.
 
-.IP "\fBellmin\fR" 12
-ellmin parameter.
-
 .IP "\fBm\fR" 12
-m parameter.
+multipole index.
 
 .IP "\fBmp\fR" 12
-mp parameter.
+multipole index.
 
 .IP "\fBppp\fR" 12
-ppp parameter.
+code parameter: points per decade in log scale of histograms.
 
 .IP "\fBellmin\fR" 12
-ellmin parameter.
+code parameter: lower limit of the l-integrals.
 
-.IP "\fBinputfile\fR" 12
-[a: in] input file.
+.IP "\fBellmin\fR" 12
+code parameter: upper limit of the l-integrals.
+
+.IP "\fBclsfile\fR" 12
+[a: in] an input file that contains the Cl's, the weak lensing convergence angular power spectrum.
 
 .IP "\fBrootDir\fR" 12
 [a: root] gives output dir, where output files will be written. If this folder does not exist it will be created. If it does exist it will be overwritten.

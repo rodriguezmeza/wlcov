@@ -1,19 +1,27 @@
 #include "common.h"
 
-void class_protect_sprintf(char* dest, char* tpl,...) {
+void class_protect_sprintf(char *dest, size_t dest_size, const char *tpl, ...) {
   va_list args;
-  va_start(args,tpl);
-  vsnprintf(dest, 2048,tpl,args);
+
+  if (dest == NULL || dest_size == 0)
+    return;
+
+  va_start(args, tpl);
+  vsnprintf(dest, dest_size, tpl, args);
   va_end(args);
+
+  dest[dest_size - 1] = '\0';
 }
 
-void class_protect_fprintf(FILE* stream, char* tpl,...) {
+void class_protect_fprintf(FILE *stream, const char *tpl, ...) {
   va_list args;
   char dest[6000];
-  va_start(args,tpl);
-  vsnprintf(dest, 2048,tpl,args);
+
+  va_start(args, tpl);
+  vsnprintf(dest, sizeof(dest), tpl, args);
   va_end(args);
-  fprintf(stream,"%s",dest);
+
+  fprintf(stream, "%s", dest);
 }
 
 void* class_protect_memcpy(void* dest, void* from, size_t sz) {

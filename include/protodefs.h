@@ -22,24 +22,12 @@ extern "C" {
 #endif
 
 int MainLoop(struct cmdline_data* cmd, struct  global_data* gd);
-
-//int Initial(struct cmdline_data* cmd, struct  global_data* gd);
-
 int StartRun(struct cmdline_data* cmd, struct  global_data* gd,
              string, string, string, string);
-
 int StartRun_Common(struct cmdline_data*, struct  global_data*);
 int PrintParameterFile(struct cmdline_data *, struct  global_data*, char *);
-
-//B If uncommented there will be a warning in the setup.py process
-//#ifdef OPENMPCODE
 int SetNumberThreads(struct cmdline_data *cmd);
-//#endif
-//E
-
 int StartOutput(struct cmdline_data *, struct  global_data*);
-
-
 int EndRun(struct cmdline_data* cmd, struct  global_data* gd);
 int startrun_memoryAllocation(struct cmdline_data* cmd, struct  global_data* gd);
 int EndRun_FreeMemory(struct cmdline_data* cmd,
@@ -50,12 +38,6 @@ int EndRun_FreeMemory_gd(struct cmdline_data* cmd,
                              struct  global_data* gd);
 int EndRun_FreeMemory_histograms(struct cmdline_data* cmd,
                              struct  global_data* gd);
-
-//B I/O directories:
-//global void setFilesDirs_log(struct cmdline_data*, struct  global_data* gd);
-//global void setFilesDirs(struct cmdline_data*, struct  global_data* gd);
-//E
-
 //B Other utilities
 #ifdef OPENMPCODE
 int ThreadCount(struct cmdline_data* cmd,
@@ -66,10 +48,16 @@ int ThreadCount(struct cmdline_data* cmd,
 //B socket:
 #ifdef ADDONS
 // If you have an addon that need global proto definitions
-//  go to this file and add the addon item.
+//  go to this file (addons/addons_include/protodefs_include.h)
+//  and add the addon item.
 #include "protodefs_include.h"
 #endif
 //E
+
+// Application Binary Interface (ABI) definitions
+size_t sizeof_cmdline_data(void);
+size_t sizeof_global_data(void);
+
 
 #ifdef __cplusplus
 }

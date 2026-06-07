@@ -4,6 +4,7 @@
 #ifndef _globaldefs_include_02_h
 #define _globaldefs_include_02_h
 
+
 //#ifdef NAGBODY
 //#include "protodefs.h"
 //#endif

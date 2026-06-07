@@ -37,12 +37,11 @@ struct global_data{
     //B memory flags
     bool cmd_allocated;
     bool gd_allocated;
-    bool histograms_allocated;
     bool rootDirFlagFree;
     bool optionsFlag;
     bool flagPrint;
     bool rootDirFlag;
-    bool inputfileFlag;
+    bool clsfileFlag;
     //E
 
     real cputotalinout;
@@ -52,6 +51,15 @@ struct global_data{
     char tmpDir[MAXLENGTHOFFILES];
     
     double ell_data[n_data_max],Cls_data[n_data_max];
+    
+    double intval;
+
+//B socket:
+#ifdef ADDONS
+#include "global_data_include.h"
+#endif
+//E
+
 };
 
 #endif // ! _global_data_h

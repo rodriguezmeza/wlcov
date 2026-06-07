@@ -15,10 +15,10 @@
 #include <string.h>
 #include <time.h>
 #include <math.h>
-
 #include <stddef.h>
 
-#include "common_defs.h"
+#include "stdinc.h"
+#include "getparam.h"
 
 //B socket:
 #ifdef ADDONS
@@ -32,17 +32,21 @@
 
 typedef char *string;
 
+#include "common_defs.h"
+
 #include "cmdline_data.h"
 #include "global_data.h"
 
+//B socket:
+#ifdef ADDONS
+#include "datastruc_tables_include.h"
+#endif
+//E
 
-//B CLASSLIB section
-// standard libraries from Julien Lesgourges CLASS
 #ifdef CLASSLIB
 #include "common.h"
 global ErrorMsg errmsg;
 #endif // ! CLASSLIB
-//E
 
 //B socket:
 #ifdef ADDONS

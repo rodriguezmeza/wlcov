@@ -9,10 +9,9 @@
 #include "stdinc.h"
 #endif
 
-//#ifdef NAGBODY
-//#include "protodefs.h"
-//#endif
-
+#ifdef GETPARAM
+#include "getparam.h"
+#endif
 
 /*
  Add your addon item here

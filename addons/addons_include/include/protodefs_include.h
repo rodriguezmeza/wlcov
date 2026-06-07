@@ -1,26 +1,20 @@
 // Use:
 //#include "protodefs_include.h"
 //
-//  it is included in (the socket):
-//      include/protodefs.h
+//  it is included in (the socket): include/protodefs.h
 //      at the end of the file
 //
 
 #ifndef _protodefs_include_h
 #define _protodefs_include_h
 
+#ifdef COSMOLIB
+#include "protodefs_cosmo_lib.h"
+#endif
+
 #ifdef PXD
 #include "protodefs_pxd.h"
 #endif
-
-#ifdef GETPARAM
-#include "getparam.h"
-//#include "protodefs_getparam.h"
-#endif
-
-//#ifdef NAGBODY
-//#include "protodefs.h"
-//#endif
 
 
 /*

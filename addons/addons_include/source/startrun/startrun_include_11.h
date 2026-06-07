@@ -3,10 +3,10 @@
 //
 //  it is included in (the socket):
 //      source/startrun.c
-//      in the search_method_string_to_int routine
+//      in the ... routine
 //
 
-// These header files have defined tag numbers for the searching methods...
+// These header files have defined tag numbers for the...
 // It is recommended to use tag numbers greater than 100
 
 #ifndef _startrun_include_11_h

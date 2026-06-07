@@ -1,5 +1,5 @@
 /*==============================================================================
- MODULE: cballsio.c		[wlcov]
+ MODULE: wlcovio.c		[wlcov]
  Written by: Mario A. Rodriguez-Meza
  Starting date:	01.05.2026
  Purpose: Routines to drive input and output data
@@ -34,62 +34,35 @@
  */
 int EndRun(struct cmdline_data* cmd, struct  global_data* gd)
 {
-    string routineName = "EndRun";
-    stream outstr;
-
-    debug_tracking_s("001", routineName);
+    real cpuTotal = CPUTIME - gd->cpuinit;
+    verb_print_normal_info(cmd->verbose, cmd->verbose_log, gd->outlog,
+                           "\nFinal CPU time : %lf %s\n",
+                           cpuTotal, PRNUNITOFTIMEUSED);
+    verb_print_normal_info(cmd->verbose, cmd->verbose_log, gd->outlog,
+                           "Final real time: %ld",
+                           (rcpu_time()-gd->cpurealinit));
+    verb_print_normal_info(cmd->verbose, cmd->verbose_log, gd->outlog,
+                           " %s\n\n", PRNUNITOFTIMEUSED); // Only work this way
 
     if (cmd->verbose_log>0)
         fclose(gd->outlog);
 
-    if (cmd->verbose > VERBOSENOINFO) {
-        real cpuTotal = CPUTIME - gd->cpuinit;
-        printf("\nFinal CPU time : %lf %s\n",
-               cpuTotal, PRNUNITOFTIMEUSED);
-        printf("Final real time: %ld",
-               (rcpu_time()-gd->cpurealinit));
-        printf(" %s\n\n", PRNUNITOFTIMEUSED);       // Only work this way
-    }
-
-    debug_tracking("002");
-
     EndRun_FreeMemory(cmd, gd);
-
-    debug_tracking_s("003... final", routineName);
 
     return SUCCESS;
 }
 
 //
-// We must check the order of memory allocation and deallocation!!!
+// We must check the order of memory allocation and freeing!!!
 //
 int EndRun_FreeMemory(struct cmdline_data* cmd,
                              struct  global_data* gd)
 {
-    string routineName = "EndRun_FreeMemory";
-
-    debug_tracking_s("001", routineName);
-
-    if (gd->histograms_allocated == TRUE)
-        EndRun_FreeMemory_histograms(cmd, gd);
-
     if (gd->gd_allocated == TRUE)
         EndRun_FreeMemory_gd(cmd, gd);
 
     if (gd->cmd_allocated == TRUE)
         EndRun_FreeMemory_cmd(cmd, gd);
-
-    debug_tracking_s("003... final", routineName);
-
-    return SUCCESS;
-}
-
-int EndRun_FreeMemory_histograms(struct cmdline_data* cmd,
-                             struct  global_data* gd)
-{
-//    free_dvector(gd->histN2pcf,1,cmd->sizeHistN);
-
-    gd->histograms_allocated = FALSE;
 
     return SUCCESS;
 }
@@ -97,10 +70,6 @@ int EndRun_FreeMemory_histograms(struct cmdline_data* cmd,
 int EndRun_FreeMemory_gd(struct cmdline_data* cmd,
                              struct  global_data* gd)
 {
-    string routineName = "EndRun_FreeMemory_gd";
-
-    debug_tracking_s("001", routineName);
-
     gd->gd_allocated = FALSE;
 
     return SUCCESS;
@@ -109,13 +78,21 @@ int EndRun_FreeMemory_gd(struct cmdline_data* cmd,
 int EndRun_FreeMemory_cmd(struct cmdline_data* cmd,
                              struct  global_data* gd)
 {
-    string routineName = "EndRun_FreeMemory_cmd";
-    debug_tracking_s("001", routineName);
-
-    if (cmd->options!=NULL)
+    //B be aware of the allocation order...
+    if (gd->optionsFlag == TRUE)
         free(cmd->options);
     if (gd->rootDirFlagFree==TRUE)
         free(cmd->rootDir);
+    if (gd->clsfileFlag==TRUE)
+        free(cmd->clsfile);
+
+//B socket:
+#ifdef ADDONS
+#include "wlcovio_include_03.h"
+#endif
+//E
+
+    //E
 
     gd->cmd_allocated = FALSE;
 

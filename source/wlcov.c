@@ -1,6 +1,7 @@
 /*==============================================================================
  MODULE: wlcov.c				[wlcov]
- Written by: Mario A. Rodriguez-Meza
+ Written by: Safia Samario & Alejandro Aviles
+ adapted by: Mario A. Rodriguez-Meza
  Starting date:	01.05.2026
  Purpose:
  Language: C
@@ -25,8 +26,6 @@
 
 //B from IntegralCovMatrix
 clock_t start_t, end_t;
-//double ell_data[n_data_max],Cls_data[n_data_max];
-//int n_data;
 
 double max_of_two(double a, double b);
 double max_of_three(double a, double b, double c);
@@ -61,21 +60,6 @@ double fmp_integrand(struct  cmdline_data*, struct  global_data*,
 double fmp(struct  cmdline_data*, struct  global_data*,
            int mp, double r, double thetap, int points_per_period, double ellmin,
            double ellmax);
-/*
-double fmmp11;
-double fmmp22;
-double fmmp12;
-double fmmp21;
-double fm_nmp12;
-double fm_nmp21;
-double fm1;
-double fm2;
-double fmp1;
-double fmp2;
-double integrand;
-double xiplus;
-double r_int;
-*/
 //E
 
 /*
@@ -95,16 +79,16 @@ double r_int;
  */
 int MainLoop(struct  cmdline_data* cmd, struct  global_data* gd)
 {
-    string routineName = "MainLoop";
+//    string routineName = "MainLoop";
 
-    debug_tracking_s("001", routineName);
+//    debug_tracking_s("00", routineName);
+
 
 //B socket:
 #ifdef ADDONS
 #include "wlcov_include_01.h"
 #endif
 //E
-
     double fmmp11;
     double fmmp22;
     double fmmp12;
@@ -117,11 +101,12 @@ int MainLoop(struct  cmdline_data* cmd, struct  global_data* gd)
     double fmp2;
     double integrand;
     double xiplus;
-//    double r_int;
 
-    //B from IntegralCovMatrix
+    //B original computational flow
     start_t = clock();
+
     xiplus = xi(cmd, gd, cmd->r, cmd->ppp, cmd->ellmin, cmd->ellmax);
+
     fmmp11=fmmp(cmd, gd, cmd->m, cmd->mp, cmd->r, cmd->theta1, cmd->thetap1,
                 cmd->ppp, cmd->ellmin, cmd->ellmax);
     fmmp22=fmmp(cmd, gd, cmd->m, cmd->mp, cmd->r, cmd->theta2, cmd->thetap2,
@@ -148,65 +133,58 @@ int MainLoop(struct  cmdline_data* cmd, struct  global_data* gd)
     integrand = 0.5 / gd->fsky * cmd->r * xiplus*(fmmp11*fmmp22 + fmmp12*fmmp21) + fm2*fmmp11*fmp2
                 + fm2*fm_nmp12*fmp1 + fm1*fmmp22*fmp1 + fm1*fm_nmp21*fmp2;
 
-    debug_tracking_r("002", cmd->r);
-    debug_tracking_r("003", integrand);
-
     end_t = clock();
 
+//    debug_tracking_s("01", routineName);
 
-    printf ("%g \n", xiplus);
-    printf ("%g \n", fmmp11);
-    printf ("%g \n", fmmp22);
-    printf ("%g \n", fmmp12);
-    printf ("%g \n", fmmp21);
-    printf ("%g \n", fm_nmp12);
-    printf ("%g \n", fm_nmp21);
-    printf ("%g \n", fm1);
-    printf ("%g \n", fm2);
-    printf ("%g \n", fmp1);
-    printf ("%g \n", fmp2);
-
-    printf ("integrand(r=%g)=%g \n", cmd->r,integrand);
-    printf("Total time: %f\n", (double)(end_t - start_t) / CLOCKS_PER_SEC  );
-
+    verb_print_normal_info(cmd->verbose, cmd->verbose_log, gd->outlog,
+                           "\nintegrand(r=%g)=%g \n", cmd->r,integrand);
+    verb_print_normal_info(cmd->verbose, cmd->verbose_log, gd->outlog,
+                           "Total time: %f\n",
+                           (double)(end_t - start_t) / CLOCKS_PER_SEC);
 
     start_t = clock();
     integrand = to_integrate(cmd, gd, cmd->m, cmd->mp, cmd->r,
                              cmd->theta1, cmd->thetap1, cmd->theta2, cmd->thetap2,
                              cmd->ppp, cmd->ellmin, cmd->ellmax);
     end_t = clock();
-    printf ("integrand(r=%g)=%g \n", cmd->r,integrand);
-    printf("Total time: %f\n", (double)(end_t - start_t) / CLOCKS_PER_SEC);
+    verb_print_normal_info(cmd->verbose, cmd->verbose_log, gd->outlog,
+                           "integrand(r=%g)=%g \n", cmd->r,integrand);
+    verb_print_normal_info(cmd->verbose, cmd->verbose_log, gd->outlog,
+                           "Total time: %f\n",
+                           (double)(end_t - start_t) / CLOCKS_PER_SEC);
 
-    double rmax, rmin, log10rmin,step,log10ri,ri;
-    double intA, intB, deltar, intval, prevr;
-    int Nr;
-    
-    Nr=50;
-    rmax=0.349066;
-    rmin=0.00232711;
-    log10rmin=log10(rmin);
-    step=log10(rmax/rmin)/(Nr-1);
+//    double rmax, rmin,
+    double log10rmin,step,log10ri,ri;
+    double intA, intB, intval, prevr;
+//    double deltar;
+//    int Nr;
 
-    printf ("rmin=%g , rmax=%g \n", rmin, rmax);
-        
-    printf ("integrating... \n");
-    
+    //B numerical parameters...
+//    Nr=50;
+//    rmax=0.349066;
+//    rmin=0.00232711;
+    //E
+    log10rmin=log10(cmd->rmin);
+    step=log10(cmd->rmax/cmd->rmin)/(cmd->Nr-1);
+
+    verb_print_normal_info(cmd->verbose, cmd->verbose_log, gd->outlog,
+                           "rmin=%g , rmax=%g \n", cmd->rmin, cmd->rmax);
+    verb_print_normal_info(cmd->verbose, cmd->verbose_log, gd->outlog,
+                           "integrating... \n");
+
     start_t = clock();
 
-    ri=rmin;
+    ri=cmd->rmin;
     intA = to_integrate(cmd, gd, cmd->m, cmd->mp, ri, cmd->theta1, cmd->thetap1,
                         cmd->theta2, cmd->thetap2,
                         cmd->ppp, cmd->ellmin, cmd->ellmax);
-
-    debug_tracking_r("004", ri);
-    debug_tracking_r("005", intA);
 
     intB   = 0.0;
     intval = 0.0;
     prevr  = ri;
     
-    for(int i=1; i<Nr; i++){
+    for(int i=1; i<cmd->Nr; i++){
         log10ri = log10rmin + i*step;
         ri=pow(10.,log10ri);
 
@@ -219,15 +197,14 @@ int MainLoop(struct  cmdline_data* cmd, struct  global_data* gd)
     };
     
     end_t = clock();
-    printf("Total time: %f\n", (double)(end_t - start_t) / CLOCKS_PER_SEC  );
-    
-    intval=intval/gd->fsky;
-    printf ("integral=%g \n", intval);
+    verb_print_normal_info(cmd->verbose, cmd->verbose_log, gd->outlog,
+                           "Total time: %f\n",
+                           (double)(end_t - start_t) / CLOCKS_PER_SEC);
+
+    gd->intval=intval/gd->fsky;
+    verb_print_min_info(cmd->verbose, cmd->verbose_log, gd->outlog,
+                           "integral=%g \n", gd->intval);
     //E original computational flow
-
-    //E
-
-    debug_tracking_s("002... final", routineName);
 
     return SUCCESS;
 }
@@ -299,15 +276,11 @@ double xi(struct  cmdline_data* cmd, struct  global_data* gd,
 };
 
 
-
-
 double to_integrate(struct  cmdline_data* cmd, struct  global_data* gd,
                     int m, int mp, double r,
                     double theta1, double thetap1, double theta2, double thetap2,
                     int ppp, double ellmin, double ellmax)
 {
-    string routineName = "to_integrate";
-
     double integrand, xiplus, fmmp11,fmmp22,fmmp12,fmmp21;
     double fm_nmp12,fm_nmp21,fm1,fm2,fmp1,fmp2;
     
@@ -325,16 +298,12 @@ double to_integrate(struct  cmdline_data* cmd, struct  global_data* gd,
     fmp1=fmp(cmd, gd, mp, r, thetap1, ppp, ellmin, ellmax);
     fmp2=fmp(cmd, gd, mp, r, thetap2, ppp, ellmin, ellmax);
 
-
     integrand = 0.5 * r * ( xiplus*(fmmp11*fmmp22 + fmmp12*fmmp21) + fm2*fmmp11*fmp2
                 + fm2*fm_nmp12*fmp1 + fm1*fmmp22*fmp1 + fm1*fm_nmp21*fmp2 );
     
     return  integrand;
     
 };
-
-
-
 
 double fmmp_integrand(struct  cmdline_data* cmd, struct  global_data* gd,
                       double ell, int m, int mp, double r,
@@ -350,24 +319,16 @@ double fmmp(struct  cmdline_data* cmd, struct  global_data* gd,
             int m, int mp, double r, double theta, double thetap,
             int points_per_period, double ellmin, double ellmax) /* Fmm'*/
 {
-    string routineName = "fmmp";
-
     double period, ell, deltaell;
     int Ntotal;
     double intA, intB,intval;
-    
-    debug_tracking_s("001", routineName);
 
     period = 2*M_PI / max_of_three(theta,thetap,r);
     deltaell = period / points_per_period;
     
     Ntotal = (int)( (ellmax-ellmin) / deltaell + 1) +1;
     
-        
     intA = fmmp_integrand(cmd, gd, ellmin, m, mp, r, theta, thetap);
-
-    debug_tracking_r("002", r);
-    debug_tracking_r("003", intA);
 
     intB = 0.0;
     intval=0.0;
@@ -378,10 +339,6 @@ double fmmp(struct  cmdline_data* cmd, struct  global_data* gd,
         intval = intval + 0.5 * (intA + intB) * deltaell;
         intA = intB;
     }
-
-    debug_tracking_r("004", intB);
-
-    debug_tracking_s("005... final", routineName);
 
     return  intval / (2.*M_PI);
     
@@ -399,8 +356,6 @@ double fm(struct  cmdline_data* cmd, struct  global_data* gd,
           int m, double r, double theta,
           int points_per_period, double ellmin, double ellmax)
 {
- 
-
     double period, ell, deltaell;
     int Ntotal;
     double intA, intB,intval;
@@ -410,7 +365,6 @@ double fm(struct  cmdline_data* cmd, struct  global_data* gd,
     
     Ntotal = (int)( (ellmax-ellmin) / deltaell + 1) +1;
     
-        
     intA = fm_integrand(cmd, gd, ellmin, m, r, theta);
     intB = 0.0;
     intval=0.0;
@@ -421,7 +375,6 @@ double fm(struct  cmdline_data* cmd, struct  global_data* gd,
         intA = intB;
     }
 
-    
     return  intval / (2.*M_PI);
     
 };
@@ -440,8 +393,6 @@ double fmp(struct  cmdline_data* cmd, struct  global_data* gd,
            int mp, double r, double thetap,
            int points_per_period, double ellmin, double ellmax)
 {
- 
-
     double period, ell, deltaell;
     int Ntotal;
     double intA, intB,intval;
@@ -450,8 +401,7 @@ double fmp(struct  cmdline_data* cmd, struct  global_data* gd,
     deltaell = period / points_per_period;
     
     Ntotal = (int)( (ellmax-ellmin) / deltaell + 1) +1;
-    
-        
+
     intA = fmp_integrand(cmd, gd, ellmin, mp, r, thetap);
     intB = 0.0;
     intval=0.0;
@@ -462,11 +412,9 @@ double fmp(struct  cmdline_data* cmd, struct  global_data* gd,
         intA = intB;
     }
 
-    
     return  intval / (2.*M_PI);
     
 };
-
 
 double max_of_three(double a, double b, double c) {
   double max = a;
@@ -481,16 +429,17 @@ double max_of_two(double a, double b) {
   return max;
 }
 
-double Bessel_Jn(int n, double x){ /* va devolviendo el valor de la función de bessel
-según  sea la n introducida*/
-    
+// va devolviendo el valor de la función de bessel
+//  según  sea la n introducida
+double Bessel_Jn(int n, double x)
+{
     double Jn=0.0;
     double largenumber = 100000.0;
     
         
     if(n==0){
-//        if(x<20)/*para bessels con argumento mayor que 20 toma la función pero para menores
-//        hace una aproximación*/
+//        if(x<20)/*para bessels con argumento mayor que 20 toma la función
+//          pero para menores hace una aproximación
         if(x<largenumber){
              Jn = gsl_sf_bessel_J0(x);
          } else {
@@ -498,7 +447,6 @@ según  sea la n introducida*/
              - sin(x - M_PI*(2.*n + 1) /4.) * (4.*n*n -1)/8 *sqrt(2./(M_PI*x*x*x));
          }
     }
-
 
     if(n==1){
         if(x<largenumber){ //check
@@ -527,7 +475,6 @@ según  sea la n introducida*/
          }
     }
 
-
     if(n==4){
         if(x<largenumber){//check
              Jn = gsl_sf_bessel_Jn(n,x);
@@ -546,7 +493,6 @@ según  sea la n introducida*/
          }
     }
 
-
     if(n==6){
         if(x<largenumber){//check
              Jn = gsl_sf_bessel_Jn(n,x);
@@ -557,9 +503,6 @@ según  sea la n introducida*/
     }
 
     if(n>6) Jn = gsl_sf_bessel_Jn(n,x);
-
-
-
 
     return Jn;
     

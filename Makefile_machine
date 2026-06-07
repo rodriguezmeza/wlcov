@@ -9,7 +9,7 @@ WRKDIR = $(MDIR)/build
 	if ! [ -e $(WRKDIR) ]; then mkdir $(WRKDIR) ; mkdir $(WRKDIR)/lib; fi;
 	touch build/.base
 
-vpath %.c source:general_libs:main
+vpath %.c source:general_lib:getparam:main
 vpath %.o build
 vpath .base build
 
@@ -64,9 +64,11 @@ OPTFLAG = -O3 -ffast-math #-march=native
 #OPTFLAG = -fast
 
 # your openmp flag (comment for compiling without openmp)
+ifeq ($(OPENMPMACHINE),1)
 OMPFLAG   = -fopenmp
 #OMPFLAG   = -mp -mp=nonuma -mp=allcores -g
 #OMPFLAG   = -openmp
+endif
 
 # all other compilation flags
 CCFLAG = -g -fPIC
@@ -128,33 +130,53 @@ include $(MACHINES_DIR)/addons/Makefile_addons
 endif
 #E ADDONS
 
-
-#---------------------------------------------
-# BEGIN GSL DEFINITIONS
-# Definition to set where GSL are located
 #
-# -------------------
-#B GSL section
+#B GETPARAM section
+GETPARAM = getparam
+vpath %.c $(GETPARAM)
+INCLUDES += -I../$(GETPARAM)
+EXTERNAL += getparam.o
+#E
+
+#
+#B GENERALLIB section
+GENERALLIB = general_lib
+vpath %.c $(GENERALLIB)
+INCLUDES += -I../$(GENERALLIB)
+HEADERFILES += $(wildcard ../general_lib/*.h)
+EXTERNAL += clib.o
+#E
+
+
+# ---------------------------------------------
+# GSL DEFINITIONS
+#
 ifeq ($(USEGSL),1)
 OPT2 += -DUSEGSL
-# Change these lines to fit your GSL installation
-    GSL_INCL =  -I$(HOME)/local/gsl/include
-    GSL_LIBS =  -L$(HOME)/local/gsl/lib -lgsl -lgslcblas
-# In other machines can be (uncomment appropriate):
-#    NAGBODYDIR = /opt/local
-# for Nersc use: module load cray-fftw/3.3.10.3 and then comment above line and uncomment:
-#    NAGBODYDIR = /opt/cray/pe/fftw/3.3.10.3/x86_milan/
-# uncomment these two lines and comment above two lines
-#    GSL_INCL =  -I$(NAGBODYDIR)/include
-#    GSL_LIBS =  -L$(NAGBODYDIR)/lib -lgsl -lgslcblas
-    CCFLAG += $(GSL_INCL)
-    LDFLAG += $(GSL_LIBS)
-endif # ! USEGSL
-#E
-# -------------------
-#
-# END GSL DEFINITIONS
-#--------------------------------------------
+
+GSL_CONFIG ?= gsl-config
+
+# Allow user override:
+#   GSL_INCLUDE=/path/include GSL_LIB=/path/lib make all
+ifneq ($(GSL_INCLUDE),)
+    GSL_CFLAGS = -I$(GSL_INCLUDE)
+else
+    GSL_CFLAGS = $(shell $(GSL_CONFIG) --cflags 2>/dev/null)
+endif
+
+ifneq ($(GSL_LIB),)
+    GSL_LDFLAGS = -L$(GSL_LIB)
+    GSL_LIBS = -lgsl -lgslcblas
+else
+    GSL_LDFLAGS =
+    GSL_LIBS = $(shell $(GSL_CONFIG) --libs 2>/dev/null)
+endif
+
+CCFLAG += $(GSL_CFLAGS)
+LDFLAG += $(GSL_LDFLAGS)
+MLIBS += $(GSL_LIBS)
+endif
+# ---------------------------------------------
 
 
 CCFLAG += $(OPT2)

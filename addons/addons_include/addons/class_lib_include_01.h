@@ -4,7 +4,9 @@
 #ifndef _class_lib_include_01_h
 #define _class_lib_include_01_h
 
-
+#ifdef COSMOLIB
+#include "class_lib_cosmo_lib_01.h"
+#endif
 
 /*
  Add your addon item here

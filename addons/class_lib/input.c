@@ -3,21 +3,22 @@
  *
  * Julien Lesgourgues, 27.08.2010
  *
- * Adapted to be used in cTreeBalls by Mario A. Rodriguez-Meza
+ * Adapted to be used in wlcov by Mario A. Rodriguez-Meza
 ==============================================================================*/
 //        1          2          3          4        ^ 5          6          7
 
 //
-// lines where there is a "//B socket:" string are places to include module files
+// lines with a "//B socket:" string are places to include module files
 //  that can be found in addons/addons_include folder
 //
 
 #include "globaldefs.h"
 #include "input.h"
 
-local void testParameterFile(struct  cmdline_data*,
-                             struct  global_data*,
-                             char *);
+local int testParameterFile(struct cmdline_data*,
+                            struct global_data*,
+                            char *,
+                            ErrorMsg);
 
 int input_find_file(struct  cmdline_data* cmd, struct  global_data* gd,
                     char *fname,
@@ -29,47 +30,85 @@ int input_find_file(struct  cmdline_data* cmd, struct  global_data* gd,
   struct file_content * pfc_input;
   struct file_content fc_setroot;
 
-  int i;
-  char extension[5];
   char input_file[_ARGUMENT_LENGTH_MAX_];
   char precision_file[_ARGUMENT_LENGTH_MAX_];
 
     //B test if cmd->paramfile exist...
     if (!strnull(fname)) {
-        testParameterFile(cmd, gd, cmd->paramfile);
+        class_call(testParameterFile(cmd, gd, cmd->paramfile, errmsg),
+                   errmsg,
+                   errmsg);
     }
     //E
 
   pfc_input = &fc_input;
 
-  fc->size = 0;
-  fc_input.size = 0;
-  fc_precision.size = 0;
+    fc->size = 0;
+    fc->filename = NULL;
+    fc->name = NULL;
+    fc->value = NULL;
+    fc->read = NULL;
+
+    fc_input.size = 0;
+    fc_input.filename = NULL;
+    fc_input.name = NULL;
+    fc_input.value = NULL;
+    fc_input.read = NULL;
+
+    fc_precision.size = 0;
+    fc_precision.filename = NULL;
+    fc_precision.name = NULL;
+    fc_precision.value = NULL;
+    fc_precision.read = NULL;
+
+    fc_setroot.size = 0;
+    fc_setroot.filename = NULL;
+    fc_setroot.name = NULL;
+    fc_setroot.value = NULL;
+    fc_setroot.read = NULL;
+
+
   input_file[0]='\0';
   precision_file[0]='\0';
 
     stream outstr;
     if (strnull(fname)) {
         verb_print(1,
-        "If you intend to use a parameter file call with <ParameterFileName>\n");
+    "If you intend to use a parameter file call with <ParameterFileName>\n");
         return FAILURE;
     } else {
         outstr = stropen(fname, "r");
         fclose(outstr);
     }
 
-    strcpy(input_file,fname);
+    if (copy_checked(input_file, sizeof(input_file), fname, "input file") != 0)
+        return FAILURE;
 
     if (!strnull(input_file)) {
-        class_call(parser_read_file(input_file,&fc_input,errmsg),
-                   errmsg, errmsg);
-        class_call(input_set_root(input_file,&pfc_input,&fc_setroot,errmsg),
-               errmsg, errmsg);
+        
+        class_call_except(parser_read_file(input_file, &fc_input, errmsg),
+                          errmsg,
+                          errmsg,
+                          parser_free(&fc_input););
+
+        class_call_except(input_set_root(input_file, &pfc_input,
+                                         &fc_setroot, errmsg),
+                          errmsg,
+                          errmsg,
+                          parser_free(pfc_input);
+                          parser_free(&fc_setroot););
+
   }
 
   if ((input_file[0]!='\0') || (precision_file[0]!='\0')){
-      class_call(parser_cat(pfc_input, &fc_precision, fc, errmsg),
-                 errmsg, errmsg);
+      
+      class_call_except(parser_cat(pfc_input, &fc_precision, fc, errmsg),
+                        errmsg,
+                        errmsg,
+                        parser_free(pfc_input);
+                        parser_free(&fc_precision);
+                        parser_free(fc););
+
   }
 
   class_call(parser_free(pfc_input), errmsg, errmsg);
@@ -83,16 +122,15 @@ int input_set_root(char* input_file,
                    struct file_content * pfc_setroot,
                    ErrorMsg errmsg) {
 
-  int flag1, filenum, iextens;
+    int flag1;
   int index_root_in_fc_input = -1;
   int overwrite_root;
-  int found_filenum;
 
   FileArg outfname;
 
   struct file_content fc_root;                      // Temporary structure with
                                                     //  only the root name
-  FileArg string1;                                  //  Is ignored
+  FileArg string1;                                  // Is ignored
   struct file_content * pfc = *ppfc_input;
 
   class_call(parser_read_string(pfc,"rootDir",&string1,&flag1,errmsg),
@@ -104,30 +142,53 @@ int input_set_root(char* input_file,
     overwrite_root = TRUE;
 //E
 
-    if (flag1 == FALSE){
-        memcpy(outfname, "Output", 7);
+    if (flag1 == FALSE) {
+        if (copy_checked(outfname, sizeof(outfname), "Output", "rootDir") != 0)
+            return FAILURE;
     } else {
-        for (index_root_in_fc_input=0;index_root_in_fc_input<pfc->size;
+        for (index_root_in_fc_input=0; index_root_in_fc_input<pfc->size;
              ++index_root_in_fc_input) {
-            if(strcmp(pfc->name[index_root_in_fc_input],"rootDir") == 0){
-                strcpy(outfname,pfc->value[index_root_in_fc_input]);
+            if (strcmp(pfc->name[index_root_in_fc_input], "rootDir") == 0) {
+                if (copy_checked(outfname, sizeof(outfname),
+                                 pfc->value[index_root_in_fc_input],
+                                 "rootDir") != 0)
+                    return FAILURE;
                 break;
             }
         }
     }
+
     if(flag1 == FALSE) {
         class_call(parser_init(&fc_root, 1, pfc->filename, errmsg),
                    errmsg,errmsg);
-        sprintf(fc_root.name[0],"rootDir");
-        sprintf(fc_root.value[0],"%s",outfname);
+        if (copy_checked(fc_root.name[0], sizeof(FileArg), "rootDir", "rootDir name") != 0) {
+            parser_free(&fc_root);
+            return FAILURE;
+        }
+
+        if (copy_checked(fc_root.value[0], sizeof(FileArg),
+                         outfname, "rootDir value") != 0) {
+            parser_free(&fc_root);
+            return FAILURE;
+        }
+
         fc_root.read[0] = FALSE;
-        class_call(parser_cat(pfc, &fc_root, pfc_setroot, errmsg),
-                   errmsg, errmsg);
+        
+        class_call_except(parser_cat(pfc, &fc_root, pfc_setroot, errmsg),
+                          errmsg,
+                          errmsg,
+                          parser_free(pfc);
+                          parser_free(&fc_root););
+
         class_call(parser_free(pfc), errmsg, errmsg);
         class_call(parser_free(&fc_root), errmsg, errmsg);
         (*ppfc_input) = pfc_setroot;
+
     } else {
-        sprintf(pfc->value[index_root_in_fc_input],"%s",outfname);
+        if (copy_checked(pfc->value[index_root_in_fc_input], sizeof(FileArg),
+                         outfname, "rootDir value") != 0)
+            return FAILURE;
+
         (*ppfc_input) = pfc;
     }
 
@@ -159,59 +220,99 @@ int input_read_parameters(struct cmdline_data *cmd,
 
     class_call(input_default_params(cmd),errmsg,errmsg);
     class_read_int("input_verbose",input_verbose);
-    class_call(input_read_parameters_general(cmd, gd,  pfc,errmsg),errmsg,errmsg);
+    class_call(input_read_parameters_general(cmd, gd, pfc, errmsg),
+               errmsg, errmsg);
+
+    gd->cmd_allocated = TRUE;
 
     return SUCCESS;
-}
-
-int input_read_parameters_general_free(struct file_content * pfc,
-                                       ErrorMsg errmsg) {
 }
 
 int input_read_parameters_general(struct cmdline_data *cmd,
                                   struct  global_data* gd,
                                   struct file_content * pfc, ErrorMsg errmsg)
 {
-    string routineName = "input_read_parameters_general";
+
+#define BASE_FREE_STRINGS_ON_FAILURE()          \
+    do {                                        \
+        if (gd->optionsFlag == TRUE) {          \
+            free(cmd->options);                 \
+            cmd->options = NULL;                \
+            gd->optionsFlag = FALSE;            \
+        }                                       \
+        if (gd->rootDirFlagFree == TRUE) {      \
+            free(cmd->rootDir);                 \
+            cmd->rootDir = NULL;                \
+            gd->rootDirFlagFree = FALSE;        \
+        }                                       \
+        if (gd->clsfileFlag == TRUE) {          \
+            free(cmd->clsfile);                 \
+            cmd->clsfile = NULL;                \
+            gd->clsfileFlag = FALSE;            \
+        }                                       \
+    } while (0)
+
     int flag;
-    int flag1,flag2;
+    int flag1;
     int param;
     int index;
-    size_t slen;
-    double param1,param2;
+    double param1;
     char string1[_ARGUMENT_LENGTH_MAX_];
 
     // All malloc have to be freed at the end of the run (EndRun)
-    debug_tracking_s("001", routineName);
 
     //B Parameters about the I/O file(s)
-    // Input catalog parameters
-    class_call(parser_read_string(pfc,"inputfile",&string1,&flag1,errmsg),
+    class_call(parser_read_string(pfc,"clsfile",&string1,&flag1,errmsg),
                errmsg,errmsg);
-    gd->inputfileFlag=FALSE;
+    gd->clsfileFlag=FALSE;
     if (flag1 == TRUE) {
         for (index=0;index<pfc->size;++index){
-          if (strcmp(pfc->name[index],"inputfile") == 0){
-              cmd->inputfile = (char*) malloc(MAXLENGTHOFSTRSCMD*sizeof(char));
-              strcpy(cmd->inputfile,pfc->value[index]);
-              gd->inputfileFlag=TRUE;
+          if (strcmp(pfc->name[index],"clsfile") == 0){
+              
+              cmd->clsfile = (char*) malloc(MAXLENGTHOFSTRSCMD * sizeof(char));
+  
+              if (cmd->clsfile == NULL) {
+                  BASE_FREE_STRINGS_ON_FAILURE();
+                  return FAILURE;
+              }
+
+              if (copy_checked(cmd->clsfile, MAXLENGTHOFSTRSCMD,
+                               pfc->value[index], "clsfile") != 0) {
+                  free(cmd->clsfile);
+                  cmd->clsfile = NULL;
+                  BASE_FREE_STRINGS_ON_FAILURE();
+                  return FAILURE;
+              }
+              gd->clsfileFlag=TRUE;
             break;
           }
         }
     }
 
     // Output parameters
-    class_call(parser_read_string(pfc,"rootDir",&string1,&flag1,errmsg),
-               errmsg,errmsg);
+    class_call_except(parser_read_string(pfc,"rootDir",&string1,&flag1,errmsg),
+                      errmsg,
+                      errmsg,
+                      BASE_FREE_STRINGS_ON_FAILURE(););
     gd->rootDirFlagFree=FALSE;
     if (flag1 == TRUE) {
         for (index=0;index<pfc->size;++index){
           if (strcmp(pfc->name[index],"rootDir") == 0){
-              slen = strlen(pfc->value[index]);
-              cmd->rootDir = (char*) malloc(MAXLENGTHOFSTRSCMD*sizeof(char));
-              snprintf(cmd->rootDir, slen+1,
-                       "%s", pfc->value[index]);
-              debug_tracking_s("001: input rootDir", cmd->rootDir);
+
+              cmd->rootDir = (char*) malloc(MAXLENGTHOFSTRSCMD * sizeof(char));
+              if (cmd->rootDir == NULL) {
+                  BASE_FREE_STRINGS_ON_FAILURE();
+                  return FAILURE;
+              }
+
+              if (copy_checked(cmd->rootDir, MAXLENGTHOFSTRSCMD,
+                               pfc->value[index], "rootDir") != 0) {
+                  free(cmd->rootDir);
+                  cmd->rootDir = NULL;
+                  BASE_FREE_STRINGS_ON_FAILURE();
+                  return FAILURE;
+                  
+              }
               gd->rootDirFlagFree=TRUE;
             break;
           }
@@ -219,77 +320,168 @@ int input_read_parameters_general(struct cmdline_data *cmd,
     }
     //E
 
-    class_call(parser_read_double(pfc,"r",&param1,&flag1,errmsg),
-               errmsg,errmsg);
+    class_call_except(parser_read_double(pfc,"r",&param1,&flag1,errmsg),
+                      errmsg,
+                      errmsg,
+                      BASE_FREE_STRINGS_ON_FAILURE(););
     if (flag1 == TRUE){
       cmd->r = param1;
     }
-    class_call(parser_read_double(pfc,"theta1",&param1,&flag1,errmsg),
-               errmsg,errmsg);
+    class_call_except(parser_read_double(pfc,"theta1",&param1,&flag1,errmsg),
+                      errmsg,
+                      errmsg,
+                      BASE_FREE_STRINGS_ON_FAILURE(););
     if (flag1 == TRUE){
       cmd->theta1 = param1;
     }
-    class_call(parser_read_double(pfc,"thetap1",&param1,&flag1,errmsg),
-               errmsg,errmsg);
+    class_call_except(parser_read_double(pfc,"thetap1",&param1,&flag1,errmsg),
+                      errmsg,
+                      errmsg,
+                      BASE_FREE_STRINGS_ON_FAILURE(););
     if (flag1 == TRUE){
       cmd->thetap1 = param1;
     }
-    class_call(parser_read_double(pfc,"theta2",&param1,&flag1,errmsg),
-               errmsg,errmsg);
+    class_call_except(parser_read_double(pfc,"theta2",&param1,&flag1,errmsg),
+                      errmsg,
+                      errmsg,
+                      BASE_FREE_STRINGS_ON_FAILURE(););
     if (flag1 == TRUE){
       cmd->theta2 = param1;
     }
-    class_call(parser_read_double(pfc,"thetap2",&param1,&flag1,errmsg),
-               errmsg,errmsg);
+    class_call_except(parser_read_double(pfc,"thetap2",&param1,&flag1,errmsg),
+                      errmsg,
+                      errmsg,
+                      BASE_FREE_STRINGS_ON_FAILURE(););
     if (flag1 == TRUE){
       cmd->thetap2 = param1;
     }
 
-    class_call(parser_read_int(pfc,"m",&param,&flag,errmsg), errmsg,errmsg);
+    class_call_except(parser_read_int(pfc,"m",&param,&flag,errmsg),
+                      errmsg,
+                      errmsg,
+                      BASE_FREE_STRINGS_ON_FAILURE(););
     if (flag == TRUE) cmd->m = param;
-    class_call(parser_read_int(pfc,"mp",&param,&flag,errmsg), errmsg,errmsg);
+    class_call_except(parser_read_int(pfc,"mp",&param,&flag,errmsg),
+                      errmsg,
+                      errmsg,
+                      BASE_FREE_STRINGS_ON_FAILURE(););
     if (flag == TRUE) cmd->mp = param;
-    class_call(parser_read_int(pfc,"ppp",&param,&flag,errmsg), errmsg,errmsg);
+    class_call_except(parser_read_int(pfc,"ppp",&param,&flag,errmsg),
+                      errmsg,
+                      errmsg,
+                      BASE_FREE_STRINGS_ON_FAILURE(););
     if (flag == TRUE) cmd->ppp = param;
 
-    class_call(parser_read_double(pfc,"ellmax",&param1,&flag1,errmsg),
-               errmsg,errmsg);
+    //B Numerical parameters
+    class_call_except(parser_read_int(pfc,"Nr",&param,&flag,errmsg),
+                      errmsg,
+                      errmsg,
+                      BASE_FREE_STRINGS_ON_FAILURE(););
+    if (flag == TRUE) cmd->Nr = param;
+    class_call_except(parser_read_double(pfc,"rmin",&param1,&flag1,errmsg),
+                      errmsg,
+                      errmsg,
+                      BASE_FREE_STRINGS_ON_FAILURE(););
+    if (flag1 == TRUE){
+      cmd->rmin = param1;
+    }
+    class_call_except(parser_read_double(pfc,"rmax",&param1,&flag1,errmsg),
+                      errmsg,
+                      errmsg,
+                      BASE_FREE_STRINGS_ON_FAILURE(););
+    if (flag1 == TRUE){
+      cmd->rmax = param1;
+    }
+    //E
+
+    class_call_except(parser_read_double(pfc,"ellmax",&param1,&flag1,errmsg),
+                      errmsg,
+                      errmsg,
+                      BASE_FREE_STRINGS_ON_FAILURE(););
     if (flag1 == TRUE){
       cmd->ellmax = param1;
     }
-    class_call(parser_read_double(pfc,"ellmin",&param1,&flag1,errmsg),
-               errmsg,errmsg);
+    class_call_except(parser_read_double(pfc,"ellmin",&param1,&flag1,errmsg),
+                      errmsg,
+                      errmsg,
+                      BASE_FREE_STRINGS_ON_FAILURE(););
     if (flag1 == TRUE){
       cmd->ellmin = param1;
     }
 
-    class_call(parser_read_int(pfc,"verbose",&param,&flag,errmsg),errmsg,errmsg);
+    class_call_except(parser_read_int(pfc,"verbose",&param,&flag,errmsg),
+                      errmsg,
+                      errmsg,
+                      BASE_FREE_STRINGS_ON_FAILURE(););
     if (flag == TRUE)
       cmd->verbose = param;
-    class_call(parser_read_int(pfc,"verbose_log",&param,&flag,errmsg),
-               errmsg,errmsg);
+    class_call_except(parser_read_int(pfc,"verbose_log",&param,&flag,errmsg),
+                      errmsg,
+                      errmsg,
+                      BASE_FREE_STRINGS_ON_FAILURE(););
     if (flag == TRUE)
       cmd->verbose_log = param;
 
 #ifdef OPENMPCODE
-    class_call(parser_read_int(pfc,"numberThreads",&param,&flag,errmsg),
-               errmsg,errmsg);
+    class_call_except(parser_read_int(pfc,"numberThreads",&param,&flag,errmsg),
+                      errmsg,
+                      errmsg,
+                      BASE_FREE_STRINGS_ON_FAILURE(););
     if (flag == TRUE)
       cmd->numthreads = param;
+#else
+    class_call_except(parser_read_int(pfc,"numberThreads",&param,&flag,errmsg),
+                      errmsg,
+                      errmsg,
+                      BASE_FREE_STRINGS_ON_FAILURE(););
+    if (flag == TRUE)
+      cmd->numthreads = 1;
 #endif
 
-    class_call(parser_read_string(pfc,"options",&string1,&flag1,errmsg),
-               errmsg,errmsg);
+    class_call_except(parser_read_string(pfc,"options",&string1,&flag1,errmsg),
+                      errmsg,
+                      errmsg,
+                      BASE_FREE_STRINGS_ON_FAILURE(););
     gd->optionsFlag=FALSE;
     if (flag1 == TRUE) {
         for (index=0;index<pfc->size;++index){
           if (strcmp(pfc->name[index],"options") == 0){
-              cmd->options = (char*) malloc(MAXLENGTHOFSTRSCMD);
-              strcpy(cmd->options,pfc->value[index]);
+              
+              cmd->options = (char*) malloc(MAXLENGTHOFSTRSCMD * sizeof(char));
+              if (cmd->options == NULL) {
+                  BASE_FREE_STRINGS_ON_FAILURE();
+                  return FAILURE;
+              }
+
+              if (copy_checked(cmd->options, MAXLENGTHOFSTRSCMD,
+                               pfc->value[index], "options") != 0) {
+                  
+                  free(cmd->options);
+                  cmd->options = NULL;
+                  BASE_FREE_STRINGS_ON_FAILURE();
+                  return FAILURE;
+
+              }
               gd->optionsFlag=TRUE;
             break;
           }
         }
+    }
+
+    //B base_path is needed in wlcovpy.px... but not needed in C wlcov code
+    FileArg base_path_tmp;
+    class_call_except(parser_read_string(pfc,"base_path",&base_path_tmp,&flag1,errmsg),
+                      errmsg,
+                      errmsg,
+                      BASE_FREE_STRINGS_ON_FAILURE(););
+    if (flag1 == TRUE) {
+        
+        if (copy_checked(cmd->base_path, sizeof(cmd->base_path),
+                         base_path_tmp, "base_path") != 0) {
+            BASE_FREE_STRINGS_ON_FAILURE();
+            return FAILURE;
+        }
+        
     }
     //E
 
@@ -299,11 +491,10 @@ int input_read_parameters_general(struct cmdline_data *cmd,
 #endif
 //
 
-
   return SUCCESS;
 }
 
-//B cTreeBalls default values
+//B wlcov default values
 int input_default_params(struct cmdline_data *cmd)
 {
 // Every item in cmdline_defs.h must have an item here::
@@ -313,10 +504,19 @@ int input_default_params(struct cmdline_data *cmd)
     cmd->theta2 = 0.1;
     cmd->thetap1 = 0.1;
     cmd->thetap2 = 0.1;
+    cmd->m = 0;
+    cmd->mp = 0;
+    cmd->ppp = 20;
+
+    //B Numerical parameters
+    cmd->Nr = 50;
+    cmd->rmin = 0.00232711;
+    cmd->rmax = 0.349066;
+    //E
 
     //B Parameters about the I/O file(s)
     // Input parameters
-    cmd->inputfile = "CkappaT_ep.dat";
+    cmd->clsfile = "CkappaT_ep.dat";
     // Output parameters
     cmd->rootDir = "Output";
     //E
@@ -326,18 +526,21 @@ int input_default_params(struct cmdline_data *cmd)
     cmd->ellmax = 2000.0;
     //E
 
-    //B Set of parameters needed to construct a test model
-//    cmd->seed=123;                                          // to always have
-                                                        // defaults Check in gsl
-    //E
-
     //B Miscellaneous parameters
     cmd->verbose = 0;
     cmd->verbose_log = 0;
 #ifdef OPENMPCODE
     cmd->numthreads = 16;
+#else
+    cmd->numthreads = 1;
 #endif
     cmd->options = "\0";
+    //E
+
+    //B base_path is needed in wlcovpy.px... but not neede in C wlcov code
+    if (copy_checked(cmd->base_path, sizeof(cmd->base_path),
+                     __WLCOVDIR__, "base_path") != 0)
+        return FAILURE;
     //E
 
 //B socket:
@@ -352,9 +555,10 @@ int input_default_params(struct cmdline_data *cmd)
 
 
 //B parameter reading/testing from a file
-local void testParameterFile(struct  cmdline_data* cmd,
-                             struct  global_data* gd,
-                             char *fname)
+local int testParameterFile(struct cmdline_data* cmd,
+                            struct global_data* gd,
+                            char *fname,
+                            ErrorMsg errmsg)
 {
 // Every item in cmdline_defs.h must have an item here::
 #define DOUBLE 1
@@ -365,6 +569,7 @@ local void testParameterFile(struct  cmdline_data* cmd,
 #define MAXTAGS 300
 #define MAXCHARBUF 1024
 
+    string routineName = "testParameterFile";
     FILE *fd;
 
   int  i,j,nt;
@@ -372,6 +577,8 @@ local void testParameterFile(struct  cmdline_data* cmd,
   void *addr[MAXTAGS];
   char tag[MAXTAGS][50];
   int  errorFlag=0;
+
+    size_t str_size[MAXTAGS];
 
     int input_verbose = 2;
     verb_print(input_verbose, "\nparsing input parameters...\n");
@@ -382,13 +589,12 @@ local void testParameterFile(struct  cmdline_data* cmd,
     RPName(cmd->r,"r");
     RPName(cmd->theta1,"theta1");
     RPName(cmd->thetap1,"thetap1");
-    RPName(cmd->theta2,"theta1");
-    RPName(cmd->thetap2,"thetap1");
+    RPName(cmd->theta2,"theta2");
+    RPName(cmd->thetap2,"thetap2");
     //E
 
     //B Parameters to control the I/O file(s)
-    // Input catalog parameters
-    SPName(cmd->inputfile,"inputfile",MAXLENGTHOFSTRSCMD);
+    SPName(cmd->clsfile,"clsfile",MAXLENGTHOFSTRSCMD);
     // Output parameters
     SPName(cmd->rootDir,"rootDir",MAXLENGTHOFSTRSCMD);
     //E
@@ -397,7 +603,7 @@ local void testParameterFile(struct  cmdline_data* cmd,
     IPName(cmd->ppp,"ppp");
 
     //B Set of parameters needed to integrate
-    RPName(cmd->ellmax,"ellmin");
+    RPName(cmd->ellmin,"ellmin");
     RPName(cmd->ellmax,"ellmax");
     //E
 
@@ -406,6 +612,9 @@ local void testParameterFile(struct  cmdline_data* cmd,
     IPName(cmd->verbose_log,"verbose_log");
 #ifdef OPENMPCODE
     IPName(cmd->numthreads,"numberThreads");
+#else
+    IPName(cmd->numthreads,"numberThreads");
+    cmd->numthreads = 1;
 #endif
     SPName(cmd->options,"options",MAXLENGTHOFSTRSCMD);
     //E
@@ -416,14 +625,6 @@ local void testParameterFile(struct  cmdline_data* cmd,
 #include "startrun_include_03.h"
 #endif
 //E
-
-    size_t slen;
-    char *script1;
-    char *script2;
-    char *script3;
-    char *script4;
-    char buf4[MAXCHARBUF];
-    char buf5[MAXCHARBUF];
 
 //B
 #ifndef _LINE_LENGTH_MAX_
@@ -440,10 +641,8 @@ local void testParameterFile(struct  cmdline_data* cmd,
 //E
 
     if((fd=fopen(fname,"r"))) {
-        while(!feof(fd)) {
+        while (fgets(line, MAXCHARBUF, fd) != NULL) {
 //B
-            fgets(line,MAXCHARBUF,fd);
-
             pequal=strchr(line,'=');
             if (pequal == NULL)
                 continue;
@@ -462,10 +661,12 @@ local void testParameterFile(struct  cmdline_data* cmd,
               left++;
             }
             right=pequal-1;
-            while (right[0]==' ') {
+
+            while (right >= left && right[0] == ' ') {
               right--;
             }
-            if(right[0]=='\'' || right[0]=='\"'){
+
+            if (right >= left && (right[0] == '\'' || right[0] == '\"')) {
               right--;
             }
 
@@ -476,10 +677,18 @@ local void testParameterFile(struct  cmdline_data* cmd,
                 errorFlag=1;
                 continue;
             }
+            
+            if ((size_t)(right - left + 1) >= sizeof(name)) {
+                snprintf(errmsg, _ERRORMSGSIZE_,
+                         "%s: parameter name too long\n", routineName);
+                if (fd != NULL) fclose(fd);
+                return FAILURE;
+            }
 
-            strncpy(name,left,right-left+1);
-            name[right-left+1]='\0';
+            memcpy(name, left, (size_t)(right - left + 1));
+            name[right - left + 1] = '\0';
 
+            
             left = pequal+1;
             while (left[0]==' ') {
               left++;
@@ -490,15 +699,23 @@ local void testParameterFile(struct  cmdline_data* cmd,
             else
               right = phash-1;
 
-            while (right[0]<=' ') {
+            while (right >= left && right[0] <= ' ') {
               right--;
             }
 
-            if (right-left < 0)
+            if (right < left)
                 continue;
 
-            strncpy(value,left,right-left+1);
-            value[right-left+1]='\0';
+            if ((size_t)(right - left + 1) >= sizeof(value)) {
+                snprintf(errmsg, _ERRORMSGSIZE_,
+                         "%s: parameter value too long\n", routineName);
+                if (fd != NULL) fclose(fd);
+                return FAILURE;
+            }
+    
+            memcpy(value, left, (size_t)(right - left + 1));
+            value[right - left + 1] = '\0';
+
 //E
 
             for(i=0,j=-1;i<nt;i++)
@@ -513,8 +730,15 @@ local void testParameterFile(struct  cmdline_data* cmd,
                         *((double*)addr[j])=atof(value);
                         break;
                     case STRING:
-                        strcpy(addr[j],value);
+                        if (copy_checked((char *)addr[j], str_size[j], value, name) != 0) {
+                            snprintf(errmsg, _ERRORMSGSIZE_,
+                                     "%s: string parameter '%s' too long\n", routineName, name);
+                            if (fd != NULL) fclose(fd);
+                            return FAILURE;
+                        }
+
                         break;
+
                     case INT:
                         *((int*)addr[j])=atoi(value);
                         break;
@@ -528,7 +752,10 @@ local void testParameterFile(struct  cmdline_data* cmd,
                             if (strchr("fFnN0", *value) != NULL)  {
                                 *((bool*)addr[j])=FALSE;
                             } else {
-                                error("getbparam: %s=%s not bool\n",name,value);
+                                snprintf(errmsg, _ERRORMSGSIZE_,
+                                         "getbparam: %s=%s not bool\n", name, value);
+                                if (fd != NULL) fclose(fd);
+                                return FAILURE;
                             }
                         break;
                 }
@@ -541,13 +768,17 @@ local void testParameterFile(struct  cmdline_data* cmd,
         } // ! while loop
         fclose(fd);
     } else {
-        fprintf(stdout,"Parameter file %s not found.\n", fname);
-        errorFlag=2;
-        exit(0);
+        snprintf(errmsg, _ERRORMSGSIZE_,
+                 "Parameter file %s not found.\n", fname);
+        return FAILURE;
     }
 
-    if (errorFlag==1)
-        error("\ntestParameterFile: going out\n");
+    if (errorFlag == 1) {
+        snprintf(errmsg, _ERRORMSGSIZE_,
+                 "%s: parameter file '%s' contains unknown or duplicated tags\n",
+                 routineName, fname);
+        return FAILURE;
+    }
 
     for(i=0;i<nt;i++) {
         if(*tag[i]) {
@@ -560,8 +791,14 @@ local void testParameterFile(struct  cmdline_data* cmd,
                     *((double*)addr[i])=GetdParam(tag[i]);
                     break;
                 case STRING:
-                    strcpy(addr[i],GetParam(tag[i]));
+                    if (copy_checked((char *)addr[i], str_size[i], GetParam(tag[i]), tag[i]) != 0) {
+                        snprintf(errmsg, _ERRORMSGSIZE_,
+                                 "%s: default string parameter '%s' too long\n", routineName, tag[i]);
+                        return FAILURE;
+                    }
+                    
                     break;
+
                 case INT:
                     *((int*)addr[i])=GetiParam(tag[i]);
                     break;
@@ -582,5 +819,7 @@ local void testParameterFile(struct  cmdline_data* cmd,
 #undef BOOLEAN
 #undef MAXTAGS
 #undef MAXCHARBUF
+    
+    return SUCCESS;
 }
 //E

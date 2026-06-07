@@ -34,70 +34,85 @@
 #define VERBOSENORMALINFO       2
 #define VERBOSEDEBUGINFO        3
 
-#define n_data_max 100000
+#ifndef n_data_max
+#define n_data_max 10000
+#endif
+#ifndef n_chi_data_max
+#define n_chi_data_max 10000
+#endif
+
+//B be aware that this macro depends on routineName...
+#define SET_TAG_NAME(paramtext)                                         \
+  do {                                                                  \
+    size_t tag_len = strlen(paramtext);                                 \
+    if (tag_len >= sizeof(tag[nt])) {                                   \
+      snprintf(errmsg, _ERRORMSGSIZE_,                                  \
+               "%s: parameter tag '%s' too long\n",                     \
+               routineName, paramtext);                                 \
+      return FAILURE;                                                   \
+    }                                                                   \
+    memcpy(tag[nt], paramtext, tag_len + 1);                            \
+  } while (0)
+//E
 
 //B I/O Macros
 #define IPName(param,paramtext)                                 \
-  {strcpy(tag[nt],paramtext);                                   \
+  {SET_TAG_NAME(paramtext);                                     \
   addr[nt]=&(param);                                            \
   id[nt++]=INT;}
 
 #define LPName(param,paramtext)                                 \
-  {strcpy(tag[nt],paramtext);                                   \
+  {SET_TAG_NAME(paramtext);                                     \
   addr[nt]=&(param);                                            \
   id[nt++]=LONG;}
 
 #define RPName(param,paramtext)                                 \
-  {strcpy(tag[nt],paramtext);                                   \
+  {SET_TAG_NAME(paramtext);                                     \
   addr[nt]=&param;                                              \
   id[nt++]=DOUBLE;}
 
 #define BPName(param,paramtext)                                 \
-  {strcpy(tag[nt],paramtext);                                   \
+  {SET_TAG_NAME(paramtext);                                     \
   addr[nt]=&param;                                              \
   id[nt++]=BOOLEAN;}
 
 #define SPName(param,paramtext,n)                               \
-  {strcpy(tag[nt],paramtext);                                   \
+  {SET_TAG_NAME(paramtext);                                     \
   param=(string) malloc(n);                                     \
   addr[nt]=param;                                               \
+  str_size[nt]=(n);                                             \
   id[nt++]=STRING;}
+
 //E I/O Macros
 
 #ifdef CLASSLIB
 #define class_call_cballs(function, error_message_from_function, error_message_output) \
 class_call(function, error_message_from_function, error_message_output)
-#else
+
+#ifndef _BASEPATHSIZE_
+#define _BASEPATHSIZE_ 1000
+#endif
+#define _ERRORMSGSIZE_ 2048 /**< generic error messages are cut beyond this number of characters */
+typedef char ErrorMsg[_ERRORMSGSIZE_]; /**< Generic error messages (there is such a field in each structure) */
+
+#else // ! CLASSLIB
 #define class_call_cballs(function, error_message_from_function, error_message_output) \
 function;
-#endif
+#endif  // ! CLASSLIB
 
 //B Debug tracking
-#ifdef DEBUGTRACKING
-#define debug_tracking(track_step)                              \
+// use: debug_tracking("xx");
+#define debug_tracking(track_step)                                      \
   verb_print_debug(1, "Track step (%s)\n", track_step);
-#define debug_tracking_s(track_step, extra)                              \
+// use: debug_tracking_s("xx", string);
+#define debug_tracking_s(track_step, extra)                             \
   verb_print_debug(1, "Track step (%s): %s\n", track_step, extra);
-#define debug_tracking_r(track_step, extra)                              \
+// use: debug_tracking_r("xx", real);
+#define debug_tracking_r(track_step, extra)                             \
   verb_print_debug(1, "Track step (%s): %g\n", track_step, extra);
-#define debug_tracking_i(track_step, extra)                              \
+// use: debug_tracking_i("xx", integer);
+#define debug_tracking_i(track_step, extra)                             \
   verb_print_debug(1, "Track step (%s): %d\n", track_step, extra);
-#else // ! DEBUGTRACKING :: dummies...
-#define debug_tracking
-#define debug_tracking_s
-#define debug_tracking_r
-#define debug_tracking_i
-#endif // ! DEBUGTRACKING
-
-#ifdef DEBUGTRACKING_Dplusf
-#define debug_tracking_s_Dplusf(track_step, extra)                              \
-  verb_print_debug(1, "Track step (%s): %s\n", track_step, extra);
-#define debug_tracking_r_Dplus(track_step, extra)                              \
-  verb_print_debug(1, "Track step (%s): %g\n", track_step, extra);
-#else // ! DEBUGTRACKING :: dummies...
-#define debug_tracking_s_Dplusf
-#define debug_tracking_r_Dplusf
-#endif
 //E
 
 #endif // ! _common_defs_h
